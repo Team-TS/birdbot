@@ -23,9 +23,6 @@ client = discord.Client()
 async def on_ready():
 	reload_admins()
 	print("Birdbot online.")
-	await sqlstuff.save_all_servers(client)
-	if not discord.opus.is_loaded():
-		discord.opus.load_opus()
 
 
 # Commands
@@ -34,117 +31,6 @@ async def on_message(message):
 	outmsg = "Error"
 	explode = message.content.split(" ")
 
-	"""Voice shit"""
-
-	if explode[0] == prefix + "join":
-
-		channel = message.author.voice.voice_channel
-
-		if not channel:
-			outmsg = "You are not connected to a voice channel."
-			return await client.send_message(message.channel, outmsg)
-		global voice
-		voice = await client.join_voice_channel(channel)
-
-	if explode[0] == prefix + "dc":
-		print("dc received")
-		await voice.disconnect()
-
-	if explode[0] == prefix + "mv":
-		print("mv received")
-		print(message.author.voice.voice_channel)
-		await voice.move_to(message.author.voice.voice_channel)
-
-	if explode[0] == prefix + "play":
-		if len(explode) > 1:
-			link = explode[1]
-		else:
-			return await client.send_message(message.channel, "No link specified.")
-		global player
-		player = await voice.create_ytdl_player(link)
-		player.start()
-		player.volume = 0.05
-		outmsg = "Now playing {0} - {1}".format(player.title, player.duration)
-		return await client.send_message(message.channel, outmsg)
-
-	if explode[0] == prefix + "stop":
-		try:
-			player.stop()
-		except UnboundLocalError:
-			return await client.send_message(message.channel, "Nothing currently playing")
-
-	if explode[0] == prefix + "printvoiceinfo":
-		print(voice.session_id)
-		print(voice.token)
-		print(voice.user)
-		print(voice.endpoint)
-		print(voice.loop)
-
-	"""Quotes"""
-
-	if explode[0] == prefix + "quote":
-		if not check_perms(message.author):
-			return
-		outmsg = "No quote found."
-		thename = explode[1].lower()
-		for dude in quotesf.all_friends:
-			if dude.l_name == thename:
-				outmsg = await dude.pickQuote()
-				await client.send_message(message.channel, outmsg)
-				break
-		return
-
-	if explode[0] == prefix + "addquote1":
-		if not check_perms(message.author):
-			return
-		outmsg = "No name found"
-		if len(explode) > 1:
-			quote = " ".join(explode[2:])
-			print(quote)
-		else:
-			outmsg = "No quote entered!"
-			return await client.send_message(message.channel, outmsg)
-		thename = explode[1].lower()
-		for dude in quotesf.all_friends:
-			if dude.l_name == thename:
-				dude.addQuotes(quote)
-				outmsg = "Added quote \"" + quote + "\" to " + dude.name
-				break
-		return await client.send_message(message.channel, outmsg)
-
-	if explode[0] == prefix + "listquotes":
-		if not check_perms(message.author):
-			return
-		outmsg = "No quotes found!"
-		if len(explode) > 1:
-			name = explode[1].lower()
-		cat = quotesf.category_lookup(name, message.server.id)
-		quotes = quotesf.get_quotes(cat)
-		outmsg = "Quotes in {0} \n\n".format(name)
-		for quote in quotes:
-			outmsg += "".join(quote) + "\n"
-		return await client.send_message(message.channel, outmsg)
-
-	if explode[0] == prefix + "addcategory":
-		if check_admin_perms(message.author) and explode[1]:
-			cat = explode[1]
-			if quotesf.create_quote_category(cat, message.server.id):
-				outmsg = "Category {0} created.".format(cat)
-				return await client.send_message(message.channel, outmsg)
-
-	if explode[0] == prefix + "addquote":
-		if explode[1]:
-			cat = explode[1]
-			catid = quotesf.category_lookup(cat)
-			if catid:
-				await client.send_message(message.channel, "Please type the quote.")
-				quote = await client.wait_for_message(timeout=20, author=message.author)
-				if quotesf.add_quote(catid, quote.content):
-					outmsg = "Quote added for category {0}: {1}".format(cat, quote.content)
-					return await client.send_message(message.channel, outmsg)
-			else:
-				outmsg = "No category found."
-				return await client.send_message(message.channel, outmsg)
 	"""Random"""
 
 	if explode[0] == prefix + "coin":
