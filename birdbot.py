@@ -4,7 +4,6 @@ import discord
 import yaml
 import classes
 import chatfunc
-import quotesf
 import sqlstuff
 
 with open("config/config.yml", "r") as ymlfile:
