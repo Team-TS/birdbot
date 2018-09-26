@@ -1,120 +1,95 @@
-# Dependancies
-
-import discord
+import logging
+from discord import *
 import yaml
-import classes
-import chatfunc
-import sqlstuff
-import commands
+import gvars
 
+logging.basicConfig(level=logging.INFO)
+
+# Load Config file for token
 with open("config/config.yml", "r") as ymlfile:
 	config = yaml.load(ymlfile)
 
-prefix = "\U0001F426"
-usergroupid = "410109275986460672"
-admingroupid = "387024327654113280"
-admins = []
+# Client
+client = Client()
 
-client = discord.Client()
+# Voice
+voiceclient = None
+vplayer = None
 
+# Discord token
+token = config["discord"]["token"]
 
-# When the bot starts
+mprefix = "£"
+
 @client.event
 async def on_ready():
-	print("Birdbot online.")
+    print("Birdbot online!")
 
-
-# Commands
 @client.event
-async def on_message(message):
-	outmsg = "Error"
-	explode = message.content.split(" ")
-	keyword = ""
-	args = []
+async def on_message(message : Message):
+    if not message.content.startswith(mprefix):
+        return
+    
+    split = message.content.split(" ")
+    command = split[0]
+    command = command[1:]
+    cargs = split[1:]
 
-	if explode[0][0] != prefix:
-		return
-	
-	print(explode)
-	if len(explode) >= 1:
-		keyword = explode[0][1:]
-	if len(explode) >= 2:
-		args = explode[1:]
+    if command == "ping":
+        return await client.send_message(message.channel, "Pong!")
 
-	print(keyword)
-	
+    # VOICE STUFF
 
-	"""New object based command system"""
+    global voiceclient
 
-	if keyword == "output":
-		command = commands.OutputText(explode[1:])
-		output = await command.fire()
-		return await client.send_message(message.channel, output)
+    if command == "join":
+        if message.author.voice.voice_channel:
+            await client.send_message(message.channel, "Joining your channel {0}".format(message.author.nick))
+            voiceclient = await client.join_voice_channel(message.author.voice.voice_channel)
+        else:
+            return await client.send_message(message.channel, "You are not in a voice channel.")
+            
+    if command == "leave":
+        if voiceclient and voiceclient.is_connected():
+            await voiceclient.disconnect()
+        else:
+            client.send_message(message.channel, "I'm not in a channel!")
 
-	if keyword == "dice":
-		if not args:
-			return await client.send_message(message.channel, outmsg)
-		
-		dice = args[0]
-		num = int(dice[0])
-		value = int(dice[2:])
-		command = commands.RollDice(num, value)
-		output = await command.fire()
-		return await client.send_message(message.channel, output)
+    if command == "play":
+        if not voiceclient or not voiceclient.is_connected():
+            voiceclient = await client.join_voice_channel(message.author.voice.voice_channel)
+        
+        music = cargs[0]
 
-	
+        vplayer = await voiceclient.create_ytdl_player(music)
+        vplayer.start()
 
-	"""Random"""
+        return await client.send_message(message.channel, "Now playing: {0}".format(vplayer.title))
 
-	if explode[0] == prefix + "coin":
-		outmsg = await chatfunc.cointoss()
-		return await client.send_message(message.channel, outmsg)
+    # Utilities
 
-	if explode[0] == prefix + "ping":
-		outmsg = "Pong!"
-		return await client.send_message(message.channel, outmsg)
+    if command == "listchan":
+        chans = message.server.channels
+        channel = ""
+        for chan in chans:
+            channel += ("{0} - {1}\n".format(chan.name, chan.id))
+        return await client.send_message(message.channel, channel)
+        
 
-	if explode[0] == prefix + "dice":
-		if len(explode) > 1:
-			dice = explode[1].split("d")
-			if len(dice) != 2:
-				return await client.send_message(message.channel, outmsg)
-			numdice = int(dice[0])
-			sides = int(dice[1])
-			rtn = await chatfunc.diceroll(numdice, sides)
-			outmsg = rtn
-			return await client.send_message(message.channel, outmsg)
+@client.event
+async def on_member_join(member : Member):
+    return await client.send_message(member.server.get_channel(gvars.general), "{0} has joined the server!".format(member.name))
 
-	"""cance"""
+@client.event
+async def on_voice_state_update(before, after):
+    print("on_voice_state_update called")
+    bchan = before.voice.voice_channel
+    achan = after.voice.voice_channel
 
-	if explode[0] == prefix + "reacc":
-		if message.author == client.user:
-			return
+    if achan == bchan:
+        print("Same, returning")
+        return
 
-		num = 1
+    return await client.send_message(before.server.get_channel(gvars.voicelog), "{0} has switched from {1} to {2}".format(before.name, bchan, achan))
 
-		if len(explode) >= 2:
-			reacc = explode[1]
-		if len(explode) >= 3:
-			num = int(explode[2])
-
-		for msg in reversed(client.messages):
-			if msg.channel == message.channel and msg != message and num > 0:
-				await client.add_reaction(msg, reacc)
-				num = num - 1
-
-		await client.delete_message(message)
-		return
-
-	"""Help"""
-
-	if explode[0] == prefix + "help":
-		outmsg = """**Commands**
-Prefix all comamnds with :bird:
-```
-help - Displays help for commands.
-coin - Tosses a standard coin.
-dice <input> - Throws dice. Input format is 2d6. Example: :bird:dice 3d12```"""
-		return await client.send_message(message.channel, outmsg)
-
-client.run(config["discord"]["token"])
+client.run(token)

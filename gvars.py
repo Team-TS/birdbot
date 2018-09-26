@@ -1,0 +1,4 @@
+import discord
+
+general = "374536941913374725"
+voicelog = "494482646454501377"
