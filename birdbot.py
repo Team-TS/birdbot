@@ -3,6 +3,7 @@ from discord import *
 import yaml
 import gvars
 import asyncio
+import Song
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,20 +27,25 @@ mprefix = "!"
 async def checkplayback():
     global vplayer
     global playqueue
-    cake = 1
-    while cake == 1:
-        if len(playqueue) > 0 and vplayer.is_playing() == False:
-            print(playqueue)
-            print('Playing next track')
-            vplayer = await voiceclient.create_ytdl_player(next(iter(playqueue)))
-            vplayer.start()
+    while True:
+        if len(playqueue) > 0 and vplayer and vplayer.is_done():
+            await playnext()
         await asyncio.sleep(5)
     
-        
-async def enqueue(song):
+async def enqueue(song : Song.Song):
     global playqueue
     playqueue.append(song)
     return
+
+async def playnext():
+    global vplayer
+    if not voiceclient:
+        return
+    song = next(iter(playqueue))
+    vplayer = await voiceclient.create_ytdl_player(song.songlink)
+    vplayer.start()
+    return await client.send_message(song.channel, "Now playing: {0} requested by {1}".format(vplayer.title, song.user.name))
+
 
 @client.event
 async def on_ready():
@@ -81,14 +87,13 @@ async def on_message(message : Message):
         if not voiceclient or not voiceclient.is_connected():
             voiceclient = await client.join_voice_channel(message.author.voice.voice_channel)
         
-        music = cargs[0]
-
+        music = Song.Song(cargs[0], message.channel, message.author)
+        await enqueue(music)
+        
         if vplayer and vplayer.is_playing():
-            await enqueue(music)
-            return await client.send_message(message.channel, "Enqueued.")
+            return await client.send_message(message.channel, "Added to the queue.")
 
-        vplayer = await voiceclient.create_ytdl_player(music)
-        vplayer.start()
+        await playnext()
         return await client.send_message(message.channel, "Now playing: {0}".format(vplayer.title))
 
     if command == "stop":
