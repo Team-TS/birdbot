@@ -7,7 +7,7 @@ import asyncio
 logging.basicConfig(level=logging.INFO)
 
 # Load Config file for token
-with open("config/config.yml", "r") as ymlfile:
+with open("config/templates/config.yml", "r") as ymlfile:
 	config = yaml.load(ymlfile)
 
 # Client
@@ -23,18 +23,21 @@ playqueue = []
 token = config["discord"]["token"]
 
 mprefix = "£"
-
 async def checkplayback():
     global vplayer
-    while vplayer and voiceclient:
-        if not vplayer:
-            return
-        if voiceclient and vplayer.isdone() and len(playqueue):
+    global playqueue
+    cake = 1
+    while cake == 1:
+        print("test")
+        if len(playqueue) > 0 and vplayer.is_playing() == False:
+            print("test")
+            print(playqueue)
+            print('Playing next track')
             vplayer = await voiceclient.create_ytdl_player(next(iter(playqueue)))
-        else:
-            vplayer = None
-        asyncio.sleep(5)
-
+            vplayer.start()
+        await asyncio.sleep(5)
+    
+        
 async def enqueue(song):
     global playqueue
     playqueue.append(song)
@@ -42,6 +45,7 @@ async def enqueue(song):
 
 @client.event
 async def on_ready():
+    asyncio.Task(checkplayback())
     print("Birdbot online!")
 
 @client.event
@@ -58,7 +62,7 @@ async def on_message(message : Message):
         return await client.send_message(message.channel, "Pong!")
 
     # VOICE STUFF
-
+    global playqueue
     global voiceclient
     global vplayer
 
@@ -87,21 +91,31 @@ async def on_message(message : Message):
 
         vplayer = await voiceclient.create_ytdl_player(music)
         vplayer.start()
-
         return await client.send_message(message.channel, "Now playing: {0}".format(vplayer.title))
 
     if command == "stop":
         if not vplayer or not vplayer.is_playing():
             return await client.send_message(message.channel, "I am not playing anything!")
 
-        voiceclient.stop()
-    
+        vplayer.stop()
+
+    if command == "skip":
+        if not vplayer or not vplayer.is_playing():
+            return await client.send_message(message.channel, "I am not playing anything!")
+        try:
+            vplayer.stop()
+            vplayer = await voiceclient.create_ytdl_player(next(iter(playqueue)))
+            vplayer.start()
+        except Exception as e:
+            return await client.send_message("ERROR: SKREK! : {0}".format(e))
+
+ 
     if command == "volume":
         if not vplayer:
             return
 
         try:
-            vplayer.volume = int(cargs[0])
+            vplayer.volume = float(cargs[0])/100
         except Exception as e:
             return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
@@ -128,5 +142,4 @@ async def on_voice_state_update(before, after):
         return
 
     return await client.send_message(before.server.get_channel(gvars.voicelog), "{0} has switched from {1} to {2}".format(before.name, bchan, achan))
-
 client.run(token)
