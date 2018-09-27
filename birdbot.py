@@ -7,7 +7,7 @@ import asyncio
 logging.basicConfig(level=logging.INFO)
 
 # Load Config file for token
-with open("config/templates/config.yml", "r") as ymlfile:
+with open("config/config.yml", "r") as ymlfile:
 	config = yaml.load(ymlfile)
 
 # Client
@@ -142,4 +142,7 @@ async def on_voice_state_update(before, after):
         return
 
     return await client.send_message(before.server.get_channel(gvars.voicelog), "{0} has switched from {1} to {2}".format(before.name, bchan, achan))
+
+
+print(token)
 client.run(token)
