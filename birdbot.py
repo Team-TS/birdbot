@@ -22,15 +22,13 @@ playqueue = []
 # Discord token
 token = config["discord"]["token"]
 
-mprefix = "£"
+mprefix = "!"
 async def checkplayback():
     global vplayer
     global playqueue
     cake = 1
     while cake == 1:
-        print("test")
         if len(playqueue) > 0 and vplayer.is_playing() == False:
-            print("test")
             print(playqueue)
             print('Playing next track')
             vplayer = await voiceclient.create_ytdl_player(next(iter(playqueue)))
