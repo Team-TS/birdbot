@@ -17,7 +17,7 @@ client = Client()
 # Voice
 voiceclient = None
 vplayer = None
-
+volume = 100.0
 playqueue = []
 
 # Discord token
@@ -38,13 +38,16 @@ async def enqueue(song : Song.Song):
     return
 
 async def playnext():
+    global playqueue
     global vplayer
+    global volume
     if not voiceclient:
         return
-    song = next(iter(playqueue))
+    song = playqueue.pop(0)
     vplayer = await voiceclient.create_ytdl_player(song.songlink)
     vplayer.start()
-    return await client.send_message(song.channel, "Now playing: {0} requested by {1}".format(vplayer.title, song.user.name))
+    vplayer.volume = volume/100
+    return await client.send_message(song.channel, "Now playing: {0} Volume:{1}% requested by {2}".format(vplayer.title,volume,song.user.name))
 
 
 @client.event
@@ -106,9 +109,9 @@ async def on_message(message : Message):
         if not vplayer or not vplayer.is_playing():
             return await client.send_message(message.channel, "I am not playing anything!")
         try:
+            await client.send_message(message.channel, "Skipping song!")
             vplayer.stop()
-            vplayer = await voiceclient.create_ytdl_player(next(iter(playqueue)))
-            vplayer.start()
+            await playnext()
         except Exception as e:
             return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
@@ -116,9 +119,13 @@ async def on_message(message : Message):
     if command == "volume":
         if not vplayer:
             return
-
         try:
-            vplayer.volume = float(cargs[0])/100
+            global volume
+            volume = float(cargs[0])
+            if volume > 200:
+                volume = 200.0
+            vplayer.volume = volume/100
+            await client.send_message(message.channel,"The volume is now: {0}%".format(volume)) 
         except Exception as e:
             return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
