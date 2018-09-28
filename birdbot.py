@@ -8,7 +8,7 @@ import Song
 logging.basicConfig(level=logging.INFO)
 
 # Load Config file for token
-with open("config/templates/config.yml", "r") as ymlfile:
+with open("config/config.yml", "r") as ymlfile:
 	config = yaml.load(ymlfile)
 
 # Client
