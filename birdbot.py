@@ -63,8 +63,7 @@ async def process_commands():
             command = split[0]
             command = command[1:]
             cargs = split[1:]
-            if commandqueue[0].author.voice.voice_channel != None:
-                switch = {
+            switch = {
                     "join" : join_function,
                     "leave" : leave_function,
                     "play" : play_function,
@@ -77,16 +76,8 @@ async def process_commands():
                     "resume" : resume_function,
                     "help" : help_function,
                     }
-                result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
-                await result()
-            else:
-                switch = {
-                "help" : help_function,
-                "ping" : ping_function,
-                "listchan" : listchan_function
-                }
-                result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
-                await result()
+            result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
+            await result()
             commandqueue.pop(0)
         await asyncio.sleep(1)
 
@@ -99,15 +90,19 @@ async def enqueue(song : Song.Song):
 
 async def join_function():
     global commandqueue
+    global voiceclient
     if commandqueue[0].author.voice.voice_channel:
-        await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author.nick))
+        await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
         voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+        return
     else:
         return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
 
 async def leave_function():
     global commandqueue
     global voiceclient
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     if voiceclient and voiceclient.is_connected():
         await voiceclient.disconnect()
     else:
@@ -118,6 +113,9 @@ async def play_function():
     global voiceclient
     global vplayer
     global cargs
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
+
     if not voiceclient or not voiceclient.is_connected():
         voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
         
@@ -133,6 +131,8 @@ async def play_function():
 async def stop_function():
     global commandqueue
     global vplayer
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     if not vplayer or not vplayer.is_playing():
         return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
 
@@ -141,6 +141,8 @@ async def stop_function():
 async def skip_function():
     global commandqueue
     global vplayer
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     if not vplayer or not vplayer.is_playing():
         return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
     try:
@@ -153,8 +155,11 @@ async def skip_function():
 async def volume_function():
     global commandqueue
     global vplayer
-    if not vplayer:
-        return
+    global voiceclient
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+    if not voiceclient or not voiceclient.is_connected():
+        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
     try:
         global volume
         volume = float(cargs[0])
@@ -180,12 +185,16 @@ async def listchan_function():
 async def pause_function():
     global commandqueue
     global vplayer
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     vplayer.pause()
     return await client.send_message(commandqueue[0].channel, "Pausing the current song!")
     
 async def resume_function():
     global commandqueue
     global vplayer
+    if commandqueue[0].author.voice.voice_channel == None:
+        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     vplayer.resume()
     return await client.send_message(commandqueue[0].channel, "Resuming the current song!")
 
