@@ -25,6 +25,15 @@ cargs = 0
 token = config["discord"]["token"]
 
 mprefix = "!"
+
+# Initialise function
+@client.event
+async def on_ready():
+    asyncio.Task(checkplayback())
+    asyncio.Task(process_commands())
+    print("Birdbot online!")
+
+# Async loop functions which control the bot.
 async def checkplayback():
     global vplayer
     global playqueue
@@ -32,11 +41,6 @@ async def checkplayback():
         if len(playqueue) > 0 and vplayer and vplayer.is_done():
             await playnext()
         await asyncio.sleep(5)
-    
-async def enqueue(song : Song.Song):
-    global playqueue
-    playqueue.append(song)
-    return
 
 async def playnext():
     global playqueue
@@ -48,25 +52,7 @@ async def playnext():
     vplayer = await voiceclient.create_ytdl_player(song.songlink)
     vplayer.start()
     vplayer.volume = volume/100
-    return await client.send_message(song.channel, "Now playing: {0} Volume:{1}% requested by {2}".format(vplayer.title,volume,song.user.name))
-
-
-@client.event
-async def on_ready():
-    asyncio.Task(checkplayback())
-    asyncio.Task(process_commands())
-    print("Birdbot online!")
-
-@client.event
-async def on_message(message : Message):
-    global commandqueue
-    if not message.content.startswith(mprefix):
-        return
-    if message.author.voice.voice_channel == None:
-        return
-    else:
-        commandqueue.append(message)
-
+    return await client.send_message(song.channel, "Now playing: {0}. Volume: {1}%. requested by {2}.".format(vplayer.title,volume,song.user.name))
 
 async def process_commands():
     global commandqueue
@@ -77,24 +63,40 @@ async def process_commands():
             command = split[0]
             command = command[1:]
             cargs = split[1:]
-            switch = {
-                "join" : join_function,
-                "leave" : leave_function,
-                "play" : play_function,
-                "stop" : stop_function,
-                "skip" : skip_function,
-                "volume" : volume_function,
+            if commandqueue[0].author.voice.voice_channel != None:
+                switch = {
+                    "join" : join_function,
+                    "leave" : leave_function,
+                    "play" : play_function,
+                    "stop" : stop_function,
+                    "skip" : skip_function,
+                    "volume" : volume_function,
+                    "ping" : ping_function,
+                    "listchan" : listchan_function,
+                    "pause" : pause_function,
+                    "resume" : resume_function,
+                    "help" : help_function,
+                    }
+                result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
+                await result()
+            else:
+                switch = {
+                "help" : help_function,
                 "ping" : ping_function,
-                "listchan" : listchan_function,
-                "pause" : pause_function,
-                "resume" : resume_function
+                "listchan" : listchan_function
                 }
-            result = switch.get(command)
-            await result()
+                result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
+                await result()
             commandqueue.pop(0)
         await asyncio.sleep(1)
 
-@client.event
+# Non-client related functions.
+
+async def enqueue(song : Song.Song):
+    global playqueue
+    playqueue.append(song)
+    return
+
 async def join_function():
     global commandqueue
     if commandqueue[0].author.voice.voice_channel:
@@ -103,7 +105,6 @@ async def join_function():
     else:
         return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
 
-@client.event
 async def leave_function():
     global commandqueue
     global voiceclient
@@ -112,7 +113,6 @@ async def leave_function():
     else:
         client.send_message(commandqueue[0].channel, "I'm not in a channel!")
 
-@client.event
 async def play_function():
     global commandqueue
     global voiceclient
@@ -128,9 +128,8 @@ async def play_function():
         return await client.send_message(commandqueue[0].channel, "Added to the queue.")
     
     await playnext()
-    return await client.send_message(commandqueue[0].channel, "Now playing: {0}".format(vplayer.title))
+    return
 
-@client.event
 async def stop_function():
     global commandqueue
     global vplayer
@@ -139,7 +138,6 @@ async def stop_function():
 
     vplayer.stop()
 
-@client.event
 async def skip_function():
     global commandqueue
     global vplayer
@@ -152,7 +150,6 @@ async def skip_function():
     except Exception as e:
         return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
-@client.event
 async def volume_function():
     global commandqueue
     global vplayer
@@ -167,13 +164,11 @@ async def volume_function():
         await client.send_message(commandqueue[0].channel,"The volume is now: {0}%".format(volume)) 
     except Exception as e:
         return await client.send_message("ERROR: SKREK! : {0}".format(e))
-@client.event
+
 async def ping_function():
     global commandqueue
-    if command == "ping":
-        return await client.send_message(commandqueue[0].channel, "Pong!")
+    return await client.send_message(commandqueue[0].channel, "Pong!")
 
-@client.event
 async def listchan_function():
     global commandqueue
     chans = commandqueue[0].server.channels
@@ -182,19 +177,31 @@ async def listchan_function():
         channel += ("{0} - {1}\n".format(chan.name, chan.id))
     return await client.send_message(commandqueue[0].channel, channel)
      
-@client.event
 async def pause_function():
     global commandqueue
     global vplayer
     vplayer.pause()
     return await client.send_message(commandqueue[0].channel, "Pausing the current song!")
     
-@client.event
 async def resume_function():
     global commandqueue
     global vplayer
     vplayer.resume()
     return await client.send_message(commandqueue[0].channel, "Resuming the current song!")
+
+async def help_function():
+    global commandqueue
+    await client.send_message(commandqueue[0].channel, "Voice channel commands:\n1:!join\n2:!leave\n3:!play 'insert youtube link'\n4:!stop\n5:!skip\n6:!volume 'insert volume between 0 and 200'\n7:!ping\n8:!listchan\n9:pause\n10:resume\n11:!help")
+    return await client.send_message(commandqueue[0].channel, "Text channel commands:\n1:!help\n2:!ping\n3:!listchan")
+# Client related functions.
+
+@client.event
+async def on_message(message : Message):
+    global commandqueue
+    if not message.content.startswith(mprefix):
+        return
+    else:
+        commandqueue.append(message)
 
 @client.event
 async def on_member_join(member : Member):
