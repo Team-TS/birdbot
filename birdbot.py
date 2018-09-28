@@ -43,7 +43,6 @@ async def playnext():
     global volume
     if not voiceclient:
         return
-    vplayer.stop()
     song = playqueue.pop(0)
     vplayer = await voiceclient.create_ytdl_player(song.songlink)
     vplayer.start()
@@ -110,8 +109,9 @@ async def on_message(message : Message):
         if not vplayer or not vplayer.is_playing():
             return await client.send_message(message.channel, "I am not playing anything!")
         try:
-	    await client.send_message(message.channel, "Skipping song!")
-	    await playnext()
+            await client.send_message(message.channel, "Skipping song!")
+            vplayer.stop()
+	           await playnext()
         except Exception as e:
             return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
@@ -120,7 +120,8 @@ async def on_message(message : Message):
         if not vplayer:
             return
         try:
-            global volume = float(cargs[0])
+            global volume
+            volume = float(cargs[0])
             if volume > 200:
                 volume = 200.0
             vplayer.volume = volume/100
