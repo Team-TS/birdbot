@@ -44,11 +44,10 @@ async def playnext():
     if not voiceclient:
         return
     vplayer.stop()
-    song = next(iter(playqueue))
+    song = playqueue.pop(0)
     vplayer = await voiceclient.create_ytdl_player(song.songlink)
     vplayer.start()
     vplayer.volume = volume/100
-    playqueue.pop(0)
     return await client.send_message(song.channel, "Now playing: {0} Volume:{1}% requested by {2}".format(vplayer.title,volume,song.user.name))
 
 
