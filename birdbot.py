@@ -96,8 +96,12 @@ async def on_message(message : Message):
         if vplayer and vplayer.is_playing():
             return await client.send_message(message.channel, "Added to the queue.")
 
-        await playnext()
-        return await client.send_message(message.channel, "Now playing: {0}".format(vplayer.title))
+        heProtecc = False
+        if heProtecc == False:
+            heProtecc = True
+            await playnext()
+            heProtecc = False
+            return await client.send_message(message.channel, "Now playing: {0}".format(vplayer.title))
 
     if command == "stop":
         if not vplayer or not vplayer.is_playing():
