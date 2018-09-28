@@ -111,7 +111,7 @@ async def on_message(message : Message):
         try:
             await client.send_message(message.channel, "Skipping song!")
             vplayer.stop()
-            await playnext()
+	           await playnext()
         except Exception as e:
             return await client.send_message("ERROR: SKREK! : {0}".format(e))
 
