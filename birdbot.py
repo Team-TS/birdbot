@@ -62,6 +62,8 @@ async def on_message(message : Message):
     global commandqueue
     if not message.content.startswith(mprefix):
         return
+    if message.author.voice.voice_channel == None:
+        return
     else:
         commandqueue.append(message)
 
@@ -83,7 +85,9 @@ async def process_commands():
                 "skip" : skip_function,
                 "volume" : volume_function,
                 "ping" : ping_function,
-                "listchan" : listchan_function
+                "listchan" : listchan_function,
+                "pause" : pause_function,
+                "resume" : resume_function
                 }
             result = switch.get(command)
             await result()
@@ -177,7 +181,21 @@ async def listchan_function():
     for chan in chans:
         channel += ("{0} - {1}\n".format(chan.name, chan.id))
     return await client.send_message(commandqueue[0].channel, channel)
-        
+     
+@client.event
+async def pause_function():
+    global commandqueue
+    global vplayer
+    vplayer.pause()
+    return await client.send_message(commandqueue[0].channel, "Pausing the current song!")
+    
+@client.event
+async def resume_function():
+    global commandqueue
+    global vplayer
+    vplayer.resume()
+    return await client.send_message(commandqueue[0].channel, "Resuming the current song!")
+
 @client.event
 async def on_member_join(member : Member):
     return await client.send_message(member.server.get_channel(gvars.general), "{0} has joined the server!".format(member.name))
@@ -195,4 +213,3 @@ async def on_voice_state_update(before, after):
 
 print(token)
 client.run(token)
-
