@@ -8,7 +8,7 @@ import Song
 logging.basicConfig(level=logging.INFO)
 
 # Load Config file for token
-with open("config/config.yml", "r") as ymlfile:
+with open("config/templates/config.yml", "r") as ymlfile:
 	config = yaml.load(ymlfile)
 
 # Client
@@ -114,14 +114,13 @@ async def join_function():
     await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
     if not voiceclient or not vplayer:
         voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
-        vplayer = await voiceclient.create_ytdl_player('https://www.youtube.com/watch?v=cdwal5Kw3Fc')
-        vplayer.start()
+        vplayer = voiceclient.create_stream_player(None)
+        vplayer.stop()
         return
     elif not voiceclient.is_connected():
         voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
     elif voiceclient or voiceclient.is_connected():
         await voiceclient.move_to(commandqueue[0].author.voice.voice_channel)
-        await vplayer.stop()
         return
     else:
         return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
