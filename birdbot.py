@@ -21,6 +21,7 @@ volume = 100.0
 playqueue = []
 commandqueue = []
 cargs = 0
+
 # Discord token
 token = config["discord"]["token"]
 
@@ -37,9 +38,13 @@ async def on_ready():
 async def checkplayback():
     global vplayer
     global playqueue
+    global voiceclient
     while True:
-        if len(playqueue) > 0 and vplayer and vplayer.is_done():
-            await playnext()
+        if voiceclient != None and vplayer != None:
+            if len(playqueue) > 0 and voiceclient.is_connected() and vplayer.is_done():
+                await playnext()
+            if len(playqueue) == 0 and voiceclient.is_connected() and not vplayer.is_playing():
+                await timeOut()
         await asyncio.sleep(5)
 
 async def playnext():
@@ -83,6 +88,20 @@ async def process_commands():
 
 # Non-client related functions.
 
+async def timeOut():
+    global playqueue
+    global voiceclient
+    time = 0
+    while not vplayer.is_playing() and voiceclient.channel != None:
+        time = time + 1
+        print(time)
+        if time == 30:
+            await voiceclient.disconnect()
+            voiceclient.channel = None
+            return
+        await asyncio.sleep(1)
+    return
+
 async def enqueue(song : Song.Song):
     global playqueue
     playqueue.append(song)
@@ -91,9 +110,18 @@ async def enqueue(song : Song.Song):
 async def join_function():
     global commandqueue
     global voiceclient
-    if commandqueue[0].author.voice.voice_channel:
-        await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
+    global vplayer
+    await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
+    if not voiceclient or not vplayer:
         voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+        vplayer = await voiceclient.create_ytdl_player('https://www.youtube.com/watch?v=cdwal5Kw3Fc')
+        vplayer.start()
+        return
+    elif not voiceclient.is_connected():
+        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+    elif voiceclient or voiceclient.is_connected():
+        await voiceclient.move_to(commandqueue[0].author.voice.voice_channel)
+        await vplayer.stop()
         return
     else:
         return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
@@ -105,6 +133,7 @@ async def leave_function():
         return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
     if voiceclient and voiceclient.is_connected():
         await voiceclient.disconnect()
+        voiceclient.channel = None
     else:
         client.send_message(commandqueue[0].channel, "I'm not in a channel!")
 
@@ -200,7 +229,7 @@ async def resume_function():
 
 async def help_function():
     global commandqueue
-    await client.send_message(commandqueue[0].channel, "Voice channel commands:\n1:!join\n2:!leave\n3:!play 'insert youtube link'\n4:!stop\n5:!skip\n6:!volume 'insert volume between 0 and 200'\n7:!ping\n8:!listchan\n9:pause\n10:resume\n11:!help")
+    await client.send_message(commandqueue[0].channel, "Voice channel commands:\n1: !join\n2: !leave\n3: !play 'insert youtube link'\n4: !stop\n5: !skip\n6: !volume 'insert volume between 0 and 200'\n7: !ping\n8: !listchan\n9: !pause\n10: !resume\n11: !help")
     return await client.send_message(commandqueue[0].channel, "Text channel commands:\n1:!help\n2:!ping\n3:!listchan")
 # Client related functions.
 
