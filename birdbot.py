@@ -4,12 +4,12 @@ import yaml
 import gvars
 import asyncio
 import Song
+from Config import Config
 
 logging.basicConfig(level=logging.INFO)
 
 # Load Config file for token
-with open("config/config.yml", "r") as ymlfile:
-	config = yaml.load(ymlfile)
+config = Config()
 
 # Client
 client = Client()
@@ -23,7 +23,7 @@ commandqueue = []
 cargs = 0
 
 # Discord token
-token = config["discord"]["token"]
+token = Config.token
 
 mprefix = "!"
 
