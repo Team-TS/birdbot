@@ -39,52 +39,63 @@ async def checkplayback():
     global vplayer
     global playqueue
     global voiceclient
-    while True:
-        if voiceclient != None and vplayer != None:
-            if len(playqueue) > 0 and voiceclient.is_connected() and vplayer.is_done():
-                await playnext()
-            if len(playqueue) == 0 and voiceclient.is_connected() and not vplayer.is_playing():
-                await timeOut()
-        await asyncio.sleep(5)
+    try:
+        while True:
+            if voiceclient != None and vplayer != None:
+                if len(playqueue) > 0 and voiceclient.is_connected() and vplayer.is_done():
+                    await playnext()
+                if len(playqueue) == 0 and voiceclient.is_connected() and not vplayer.is_playing():
+                    await timeOut()
+            await asyncio.sleep(5)
+    except Exception as error:
+       return print("An error has occured during execution of the checkplayback function:'" + error + "'")
 
 async def playnext():
     global playqueue
     global vplayer
     global volume
-    if not voiceclient:
-        return
-    song = playqueue.pop(0)
-    vplayer = await voiceclient.create_ytdl_player(song.songlink)
-    vplayer.start()
-    vplayer.volume = volume/100
-    return await client.send_message(song.channel, "Now playing: {0}. Volume: {1}%. requested by {2}.".format(vplayer.title,volume,song.user.name))
+    try:
+        if not voiceclient:
+            return
+        song = playqueue.pop(0)
+        vplayer = await voiceclient.create_ytdl_player(song.songlink)
+        vplayer.start()
+        vplayer.volume = volume/100
+        return await client.send_message(song.channel, "Now playing: {0}. Volume: {1}%. requested by {2}.".format(vplayer.title,volume,song.user.name))
+    except Exception as error:
+        return print("An error has occured during execution of the playnext function:'" + error + "'")
+
 
 async def process_commands():
     global commandqueue
     global cargs
-    while True:
-        if len(commandqueue) > 0:
-            split = commandqueue[0].content.split(" ")
-            command = split[0]
-            command = command[1:]
-            cargs = split[1:]
-            switch = {
-                    "join" : join_function,
-                    "leave" : leave_function,
-                    "play" : play_function,
-                    "stop" : stop_function,
-                    "skip" : skip_function,
-                    "volume" : volume_function,
-                    "ping" : ping_function,
-                    "listchan" : listchan_function,
-                    "pause" : pause_function,
-                    "resume" : resume_function,
-                    "help" : help_function,
-                    }
-            result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
-            await result()
-            commandqueue.pop(0)
-        await asyncio.sleep(1)
+    try:
+        while True:
+            if len(commandqueue) > 0:
+                split = commandqueue[0].content.split(" ")
+                command = split[0]
+                command = command[1:]
+                cargs = split[1:]
+                switch = {
+                        "join" : join_function,
+                        "leave" : leave_function,
+                        "play" : play_function,
+                        "stop" : stop_function,
+                        "skip" : skip_function,
+                        "volume" : volume_function,
+                        "ping" : ping_function,
+                        "listchan" : listchan_function,
+                        "pause" : pause_function,
+                        "resume" : resume_function,
+                        "help" : help_function,
+                        }
+                result = switch.get(command, lambda: client.send_message(commandqueue[0].channel, "Invalid command, type !help for a list of commands!"))
+                await result()
+                commandqueue.pop(0)
+            await asyncio.sleep(1)
+    except Exception as error:
+        process_commands()
+        return print("An error has occured during execution of the process_commands function:'" + error + "'")
 
 # Non-client related functions.
 
@@ -92,153 +103,193 @@ async def timeOut():
     global playqueue
     global voiceclient
     time = 0
-    while not vplayer.is_playing() and voiceclient.channel != None:
-        time = time + 1
-        print(time)
-        if time == 30:
-            await voiceclient.disconnect()
-            voiceclient.channel = None
-            return
-        await asyncio.sleep(1)
-    return
+    try:
+        while not vplayer.is_playing() and voiceclient.channel != None:
+            time = time + 1
+            print(time)
+            if time == 30:
+                await voiceclient.disconnect()
+                voiceclient.channel = None
+                return
+            await asyncio.sleep(1)
+        return
+    except Exception as error:
+       return print("An error has occured during execution of the timeOut function:'" + error + "'")
 
 async def enqueue(song : Song.Song):
     global playqueue
-    playqueue.append(song)
-    return
+    try:
+        playqueue.append(song)
+        return
+    except Exception as error:
+        return print("An error has occured during execution of the enqueue_function:'" + error + "'")
 
 async def join_function():
     global commandqueue
     global voiceclient
     global vplayer
-    await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
-    if not voiceclient or not vplayer:
-        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
-        vplayer = voiceclient.create_stream_player(None)
-        vplayer.stop()
-        return
-    elif not voiceclient.is_connected():
-        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
-    elif voiceclient or voiceclient.is_connected():
-        await voiceclient.move_to(commandqueue[0].author.voice.voice_channel)
-        return
-    else:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
+    try:
+        await client.send_message(commandqueue[0].channel, "Joining your channel {0}".format(commandqueue[0].author))
+        if not voiceclient or not vplayer:
+            voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+            vplayer = voiceclient.create_stream_player(None)
+            vplayer.stop()
+            return
+        elif not voiceclient.is_connected():
+            voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+        elif voiceclient or voiceclient.is_connected():
+            await voiceclient.move_to(commandqueue[0].author.voice.voice_channel)
+            return
+        else:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
+    except Exception as error:
+        return print("An error has occured during execution of the join_function:'" + error + "'")
+
 
 async def leave_function():
     global commandqueue
     global voiceclient
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    if voiceclient and voiceclient.is_connected():
-        await voiceclient.disconnect()
-        voiceclient.channel = None
-    else:
-        client.send_message(commandqueue[0].channel, "I'm not in a channel!")
+    try:
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        if voiceclient and voiceclient.is_connected():
+            await voiceclient.disconnect()
+            voiceclient.channel = None
+            return
+        else:
+            return await client.send_message(commandqueue[0].channel, "I'm not in a channel!")
+    except Exception as error:
+        return print("An error has occured during execution of the leave_function:'" + error + "'")
 
 async def play_function():
     global commandqueue
     global voiceclient
     global vplayer
     global cargs
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
-
-    if not voiceclient or not voiceclient.is_connected():
-        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
-        
-    music = Song.Song(cargs[0], commandqueue[0].channel, commandqueue[0].author)
-    await enqueue(music)
-        
-    if vplayer and vplayer.is_playing():
-        return await client.send_message(commandqueue[0].channel, "Added to the queue.")
+    try:
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel.")
     
-    await playnext()
-    return
+        elif not voiceclient or not voiceclient.is_connected():
+            voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+        
+        music = Song.Song(cargs[0], commandqueue[0].channel, commandqueue[0].author)
+        await enqueue(music)
+        
+        if vplayer and vplayer.is_playing():
+            return await client.send_message(commandqueue[0].channel, "Added to the queue.")
+    
+        return await playnext()
+    except Exception as error:
+        return print("An error has occured during execution of the play_function:'" + error + "'")
 
 async def stop_function():
     global commandqueue
     global vplayer
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    if not vplayer or not vplayer.is_playing():
-        return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
-
-    vplayer.stop()
+    try:
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        if not vplayer or not vplayer.is_playing():
+            return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
+        else:
+            return vplayer.stop()
+    except Exception as error:
+        return print("An error has occured during execution of the stop_function:'" + error + "'")
 
 async def skip_function():
     global commandqueue
     global vplayer
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    if not vplayer or not vplayer.is_playing():
-        return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
     try:
-        await client.send_message(commandqueue[0].channel, "Skipping song!")
-        vplayer.stop()
-        await playnext()
-    except Exception as e:
-        return await client.send_message("ERROR: SKREK! : {0}".format(e))
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        elif not vplayer or not vplayer.is_playing():
+            return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
+        else:
+            await client.send_message(commandqueue[0].channel, "Skipping song!")
+            vplayer.stop()
+            return await playnext()
+    except Exception as error:
+        return print("An error has occured during execution of the skip_function:'" + error + "'")
 
 async def volume_function():
     global commandqueue
     global vplayer
     global voiceclient
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    if not voiceclient or not voiceclient.is_connected():
-        voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
     try:
-        global volume
-        volume = float(cargs[0])
-        if volume > 200:
-            volume = 200.0
-        vplayer.volume = volume/100
-        await client.send_message(commandqueue[0].channel,"The volume is now: {0}%".format(volume)) 
-    except Exception as e:
-        return await client.send_message("ERROR: SKREK! : {0}".format(e))
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        if not voiceclient or not voiceclient.is_connected():
+            voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
+            global volume
+            volume = float(cargs[0])
+            if volume > 200:
+                volume = 200.0
+            vplayer.volume = volume/100
+            return await client.send_message(commandqueue[0].channel,"The volume is now: {0}%".format(volume)) 
+    except Exception as error:
+        return print("An error has occured during execution of the volume_function:'" + error + "'")
 
 async def ping_function():
     global commandqueue
-    return await client.send_message(commandqueue[0].channel, "Pong!")
+    try:
+        return await client.send_message(commandqueue[0].channel, "Pong!")
+    except Exception as error:
+        return print("An error has occured during execution of the ping_function:'" + error + "'")
 
 async def listchan_function():
     global commandqueue
-    chans = commandqueue[0].server.channels
-    channel = ""
-    for chan in chans:
-        channel += ("{0} - {1}\n".format(chan.name, chan.id))
-    return await client.send_message(commandqueue[0].channel, channel)
+    try:
+        chans = commandqueue[0].server.channels
+        channel = ""
+        for chan in chans:
+            channel += ("{0} - {1}\n".format(chan.name, chan.id))
+        return await client.send_message(commandqueue[0].channel, channel)
+    except Exception as error:
+       return print("An error has occured during execution of the listchan_function:'" + error + "'")
      
 async def pause_function():
     global commandqueue
     global vplayer
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    vplayer.pause()
-    return await client.send_message(commandqueue[0].channel, "Pausing the current song!")
-    
+    try:
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        vplayer.pause()
+        return await client.send_message(commandqueue[0].channel, "Pausing the current song!")
+    except Exception as error:
+       return print("An error has occured during execution of the pause_function:'" + error + "'")    
+
 async def resume_function():
     global commandqueue
     global vplayer
-    if commandqueue[0].author.voice.voice_channel == None:
-        return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-    vplayer.resume()
-    return await client.send_message(commandqueue[0].channel, "Resuming the current song!")
+    try:
+        if commandqueue[0].author.voice.voice_channel == None:
+            return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
+        vplayer.resume()
+        return await client.send_message(commandqueue[0].channel, "Resuming the current song!")
+    except Exception as error:
+       return print("An error has occured during execution of the resume_function:'" + error + "'")
 
 async def help_function():
     global commandqueue
-    await client.send_message(commandqueue[0].channel, "Voice channel commands:\n1: !join\n2: !leave\n3: !play 'insert youtube link'\n4: !stop\n5: !skip\n6: !volume 'insert volume between 0 and 200'\n7: !ping\n8: !listchan\n9: !pause\n10: !resume\n11: !help")
-    return await client.send_message(commandqueue[0].channel, "Text channel commands:\n1:!help\n2:!ping\n3:!listchan")
+    try:
+        await client.send_message(commandqueue[0].channel, "Voice channel commands:\n1: !join\n2: !leave\n3: !play 'insert youtube link'\n4: !stop\n5: !skip\n6: !volume 'insert volume between 0 and 200'\n7: !ping\n8: !listchan\n9: !pause\n10: !resume\n11: !help")
+        return await client.send_message(commandqueue[0].channel, "Text channel commands:\n1:!help\n2:!ping\n3:!listchan")
+    except Exception as error:
+       return print("An error has occured during execution of the help_function:'" + error + "'")
 # Client related functions.
 
 @client.event
 async def on_message(message : Message):
     global commandqueue
-    if not message.content.startswith(mprefix):
-        return
-    else:
-        commandqueue.append(message)
+    try:
+        if not message.content.startswith(mprefix):
+            return
+        else:
+            commandqueue.append(message)
+            return
+    except Exception as error:
+       return print("An error has occured during execution of the on_message function:'" + error + "'")
+
 
 @client.event
 async def on_member_join(member : Member):
