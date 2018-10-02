@@ -198,12 +198,15 @@ async def stop_function():
 
 async def skip_function():
     global commandqueue
+    global playqueue
     global vplayer
     try:
         if commandqueue[0].author.voice.voice_channel == None:
             return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
         elif not vplayer or not vplayer.is_playing():
             return await client.send_message(commandqueue[0].channel, "I am not playing anything!")
+        elif len(playqueue) == 0:
+            return await client.send_message(commandqueue[0].channel, "No songs to skip!")
         else:
             await client.send_message(commandqueue[0].channel, "Skipping song!")
             vplayer.stop()
