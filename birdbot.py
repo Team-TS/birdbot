@@ -221,14 +221,15 @@ async def volume_function():
     try:
         if commandqueue[0].author.voice.voice_channel == None:
             return await client.send_message(commandqueue[0].channel, "You are not in a voice channel!")
-        if not voiceclient or not voiceclient.is_connected():
+        elif not voiceclient or not voiceclient.is_connected():
             voiceclient = await client.join_voice_channel(commandqueue[0].author.voice.voice_channel)
-            global volume
-            volume = float(cargs[0])
-            if volume > 200:
-                volume = 200.0
-            vplayer.volume = volume/100
-            return await client.send_message(commandqueue[0].channel,"The volume is now: {0}%".format(volume)) 
+        global volume
+        volume = float(cargs[0])
+        if volume > 200:
+            volume = 200.0
+        vplayer.volume = volume/100
+        return await client.send_message(commandqueue[0].channel,"The volume is now: {0}%".format(volume)) 
+
     except Exception as error:
         return print("An error has occured during execution of the volume_function:'" + error + "'")
 
