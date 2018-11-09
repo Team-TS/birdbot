@@ -43,11 +43,13 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    global vplayer
+    global voiceclient
     if message.author.bot == True:
         return
     elif message.channel.name == 'bot':
         await client.process_commands(message)
-    else:
+    elif message.content.startswith("!"):
         await client.send_message(message.channel, "Please enter the command again into the bot text channel!")
     return
 
@@ -58,6 +60,7 @@ async def Autoplay():
     global volumechange
     countdownfired = False
     while True:
+        print("Test")
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
@@ -180,6 +183,9 @@ async def stop(ctx):
     global vplayer
     global voiceclient
     global votelist
+    if vplayer == None or voiceclient == None or voiceclient.is_connected() == False or vplayer.is_playing() == False:
+        await client.send_message(client.get_channel(gvars.bot), "Bot does not exist yet.")
+        return
     message = ctx.message.content
     message = message.replace("!","")
     message = message if message != None else "stop"
@@ -192,14 +198,13 @@ async def stop(ctx):
             votelist.append(ctx.message.author)
             if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                 for name in votelist:
-                    if str(discord.utils.get(voiceclient.channel.voice_members, name = votelist[name])) != votelist[name]:
+                    if str(discord.utils.get(voiceclient.channel.voice_members, name = votelist[name])) == None:
                         del votelist[name]
                 if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                     await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
                     vplayer.stop()
                     votelist.clear()
-                else:
-                    await client.send_message(client.get_channel(gvars.bot), "User: {0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(ctx.message.author, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
+            await client.send_message(client.get_channel(gvars.bot), "User: {0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(ctx.message.author, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
         else:
             await client.send_message(client.get_channel(gvars.bot), "You have already voted!")
     return
@@ -308,3 +313,4 @@ async def on_voice_state_update(before, after):
 
 
 client.run(token)
+
