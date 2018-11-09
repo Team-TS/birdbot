@@ -285,10 +285,7 @@ async def nextvideodata(x):
 
 async def youtubeurlsnipper(x):
     url = x
-    if len(url) > 43:
-        url = url[32:43]
-    else:
-        url = url[32:]
+    url = url[32:43]
     return url
 
 @client.event
