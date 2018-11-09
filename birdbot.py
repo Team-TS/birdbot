@@ -58,7 +58,6 @@ async def Autoplay():
     global volumechange
     countdownfired = False
     while True:
-        print("Test")
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
