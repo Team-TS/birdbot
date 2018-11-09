@@ -47,7 +47,8 @@ async def on_message(message):
         return
     elif message.channel.name == 'bot':
         await client.process_commands(message)
-    else:
+        return
+    elif message.content.startswith("!"):
         await client.send_message(message.channel, "Please enter the command again into the bot text channel!")
     return
 
