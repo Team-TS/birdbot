@@ -60,7 +60,6 @@ async def Autoplay():
     global volumechange
     countdownfired = False
     while True:
-        print("Test")
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
@@ -150,7 +149,6 @@ async def join(ctx):
         caller = ctx.message.author
         voiceclient = await client.join_voice_channel(ctx.message.author.voice.voice_channel)
         vplayer = voiceclient.create_stream_player(None)
-        vplayer.stop()
     elif voiceclient.is_connected() == False:
         caller = ctx.message.author
         voiceclient = await client.join_voice_channel(ctx.message.author.voice.voice_channel)
@@ -159,6 +157,7 @@ async def join(ctx):
         await voiceclient.move_to(ctx.message.author.voice.voice_channel)
     else:
         await client.send_message(client.get_channel(gvars.bot), "The bot is already in another channel!")
+    vplayer.stop()
     return
 
 @client.command(pass_context=True)
