@@ -189,7 +189,7 @@ async def stop(ctx):
     message = message.replace("!","")
     message = message if message != None else "stop"
     authorindex = ctx.message.author
-    authorindex = authorindex.split('#')
+    authorindex = authorindex.rsplit('#', 1)
     authorindex = authorindex[0]
     if discord.utils.get(ctx.message.author.roles, name ='Admin') == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
