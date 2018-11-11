@@ -25,7 +25,7 @@ voiceclient = None
 #initial caller
 caller = None
 #votes
-votelist = []
+votelist = {}
 
 #searchlist
 searchlist = []
@@ -176,6 +176,8 @@ async def leave(ctx):
 async def skip(ctx):
     await stop.invoke(ctx)
     return
+
+
 @client.command(pass_context=True)
 async def stop(ctx):
     global vplayer
@@ -287,7 +289,10 @@ async def nextvideodata(x):
 
 async def youtubeurlsnipper(x):
     url = x
-    url = url[32:43]
+    if len(url) > 43:
+        url = url[32:43]
+    else:
+        url = url[32:]
     return url
 
 @client.event
