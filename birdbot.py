@@ -188,16 +188,20 @@ async def stop(ctx):
     message = ctx.message.content
     message = message.replace("!","")
     message = message if message != None else "stop"
-    if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin":
+    authorindex = ctx.message.author
+    authorindex = authorindex.split('#')
+    authorindex = authorindex[0]
+    if discord.utils.get(ctx.message.author.roles, name ='Admin') == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
         votelist.clear()
         vplayer.stop()
     else:
-        if str(discord.utils.get(votelist, name = ctx.message.author)) == None:
-            votelist.append(ctx.message.author)
+        if votelist['{0}'.format(authorindex)] == None:
+            votelist['{0}'.format(authorindex)] = ctx.message.author
             if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
+                # Check the existing list to see if everyone is in the channel who is in the list, if they are not remove them.
                 for name in votelist:
-                    if str(discord.utils.get(voiceclient.channel.voice_members, name = votelist[name])) == None:
+                    if discord.utils.get(voiceclient.channel.voice_members, name = votelist[name]) == None:
                         del votelist[name]
                 if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                     await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
