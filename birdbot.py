@@ -176,7 +176,6 @@ async def leave(ctx):
 async def skip(ctx):
     await stop.invoke(ctx)
     return
-
 @client.command(pass_context=True)
 async def stop(ctx):
     global vplayer
@@ -188,26 +187,26 @@ async def stop(ctx):
     message = ctx.message.content
     message = message.replace("!","")
     message = message if message != None else "stop"
-    authorindex = ctx.message.author
-    authorindex = authorindex.rsplit('#', 1)
+    authorindex = str(ctx.message.author).rsplit('#', 1)
     authorindex = authorindex[0]
     if discord.utils.get(ctx.message.author.roles, name ='Admin') == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
         votelist.clear()
         vplayer.stop()
     else:
-        if votelist['{0}'.format(authorindex)] == None:
+        if ('{0}'.format(authorindex) in votelist) == False:
             votelist['{0}'.format(authorindex)] = ctx.message.author
             if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                 # Check the existing list to see if everyone is in the channel who is in the list, if they are not remove them.
-                for name in votelist:
+                for name in votelist.copy():
                     if discord.utils.get(voiceclient.channel.voice_members, name = votelist[name]) == None:
                         del votelist[name]
-                if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
+                if len(votelist) >= round(len(voiceclient.channel.voice_members)/2) or len(voiceclient.channel.voice_members) < 3:
                     await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
                     vplayer.stop()
                     votelist.clear()
-            await client.send_message(client.get_channel(gvars.bot), "User: {0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(ctx.message.author, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
+                    return
+            await client.send_message(client.get_channel(gvars.bot), "{0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(authorindex, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
         else:
             await client.send_message(client.get_channel(gvars.bot), "You have already voted!")
     return
