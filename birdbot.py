@@ -7,6 +7,9 @@ from itertools import cycle
 from Config import Config
 import urllib.request
 import json
+import io
+import requests
+
 
 # Load Config file for token
 config = Config()
@@ -101,6 +104,7 @@ async def enqueue(ctx):
     split = ctx.message.content.split(" ")
     link = split[1]
     music = Song.Song(link, ctx.message.channel, ctx.message.author)
+    await displayembed("Enqueue",ctx)
     playqueue.append(music)
     return
 
@@ -158,6 +162,36 @@ async def join(ctx):
     else:
         await client.send_message(client.get_channel(gvars.bot), "The bot is already in another channel!")
     vplayer.stop()
+    return
+
+@client.command(pass_context=True)
+async def search(ctx):
+    global apikey
+    global searchlist
+    if (len(ctx.message.content) <= 7):
+        await client.send_message(client.get_channel(gvars.bot), "No topic for search entered!")
+        return
+    split = ctx.message.content.split(" ")
+    searchContent = split[1]
+    url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
+    responce = requests.get(url, verify=True)
+    data = responce.json()
+    x = 0
+    id = []
+    title = []
+    while x < 20:
+        id.append(data['items'][x]['id']['videoId'])
+        title.append(data['items'][x]['snippet']['title'])
+        x = x + 1
+    await displayembed("Search",ctx,title)
+    selection = await client.wait_for_message(timeout = 20,author = ctx.message.author)
+    selection = int(selection.content) - 1
+    if selection < 0 or selection > 20:
+        await client.send_message(ctx.message.author,"Number is too high/low. Please search again in the bot channel to try again.")
+        return
+    else:
+        ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
+        await enqueue(ctx)
     return
 
 @client.command(pass_context=True)
@@ -245,27 +279,46 @@ async def help(ctx):
         embed.add_field(name = '6: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
         embed.add_field(name = '7: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
         embed.add_field(name = '8: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
+        embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 20 videos matching your parameters, type the number you want to play. This will timeout after 20 seconds.', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
         return
 
 
-async def displayembed(temp):
+async def displayembed(*args):
     global vplayer
     global playqueue
-    #if temp == "Search":
-    #    embed = discord.Embed(
-    #        title = url,
-    #        colour = discord.Colour.blue()
-    #        )
-    #    embed.set_author(name = 'Added to queue:', avatar_url = author.avatar_url)
-    #    embed.set_thumbnail(url = image)
-    #    embed.add_field(name = 'Channel:', value = duration, inline = True)
-    #    embed.add_field(name = 'Estimated time until playing:', value = durationtillplayed, inline = True)
-    #    embed.add_field(name = 'Song duration:', value = duration, inline = False)
-    #    embed.add_field(name = 'Position in queue:', value = duration, inline = False)
-    #    await client.send_message(client.get_channel(gvars.bot), embed = embed)
-    songduration = divmod(vplayer.duration,60)
-    if temp == "Playing":
+    if args[1]:
+        ctx = args[1]
+    if args[0] == "Search":
+        title = args[2]
+        embed = discord.Embed(
+            colour = discord.Colour.blue()
+            )
+        embed.set_author(name = 'Search:', icon_url = 'https://cdn1.iconfinder.com/data/icons/hawcons/32/698627-icon-111-search-512.png')
+        embed.add_field(name = 'Video 1:', value = '{0}'.format(title[0]), inline = False)
+        embed.add_field(name = 'Video 2:', value = '{0}'.format(title[1]), inline = False)
+        embed.add_field(name = 'Video 3:', value = '{0}'.format(title[2]), inline = False)
+        embed.add_field(name = 'Video 4:', value = '{0}'.format(title[3]), inline = False)
+        embed.add_field(name = 'Video 5:', value = '{0}'.format(title[4]), inline = False)
+        embed.add_field(name = 'Video 6:', value = '{0}'.format(title[5]), inline = False)
+        embed.add_field(name = 'Video 7:', value = '{0}'.format(title[6]), inline = False)
+        embed.add_field(name = 'Video 8:', value = '{0}'.format(title[7]), inline = False)
+        embed.add_field(name = 'Video 9:', value = '{0}'.format(title[8]), inline = False)
+        embed.add_field(name = 'Video 10:', value = '{0}'.format(title[9]), inline = False)
+        embed.add_field(name = 'Video 11:', value = '{0}'.format(title[10]), inline = False)
+        embed.add_field(name = 'Video 12:', value = '{0}'.format(title[11]), inline = False)
+        embed.add_field(name = 'Video 13:', value = '{0}'.format(title[12]), inline = False)
+        embed.add_field(name = 'Video 14:', value = '{0}'.format(title[13]), inline = False)
+        embed.add_field(name = 'Video 15:', value = '{0}'.format(title[14]), inline = False)
+        embed.add_field(name = 'Video 16:', value = '{0}'.format(title[15]), inline = False)
+        embed.add_field(name = 'Video 17:', value = '{0}'.format(title[16]), inline = False)
+        embed.add_field(name = 'Video 18:', value = '{0}'.format(title[17]), inline = False)
+        embed.add_field(name = 'Video 19:', value = '{0}'.format(title[18]), inline = False)
+        embed.add_field(name = 'Video 20:', value = '{0}'.format(title[19]), inline = False)
+        await client.send_message(ctx.message.author, embed = embed)
+        return
+    if args[0] == "Playing":
+        songduration = divmod(vplayer.duration,60)
         embed = discord.Embed(
             title = vplayer.title,
             colour = discord.Colour.blue()
@@ -275,6 +328,21 @@ async def displayembed(temp):
         embed.add_field(name = 'Song duration:' , value = '{0}m {1}s'.format(songduration[0],songduration[1]), inline = True)
         embed.add_field(name = 'Volume:' , value = "{0}%".format(vplayer.volume*100) , inline = True)
         embed.add_field(name = 'Requested by:' , value = playqueue[0].user , inline = True)
+        embed.add_field(name = 'Up next:' , value = await nextvideodata(playqueue[1].songlink) if len(playqueue) > 1 else "Nothing.", inline = True)
+        await client.send_message(client.get_channel(gvars.bot), embed = embed)
+    if args[0] == "Enqueue":
+        content = args[1]
+        split = content.message.content.split(" ")
+        url = split[1]
+        print(url)
+        title = await nextvideodata(url)
+        embed = discord.Embed(
+            title = title,
+            colour = discord.Colour.blue()
+            )
+        embed.set_author(name = 'Enqueuing:',icon_url = 'http://www.clker.com/cliparts/j/W/O/s/N/o/windows-media-player-play-button-md.png')
+        embed.set_thumbnail(url = "https://img.youtube.com/vi/{0}/default.jpg".format(await youtubeurlsnipper(url)))
+        embed.add_field(name = 'Requested by:' , value = content.message.author , inline = True)
         embed.add_field(name = 'Up next:' , value = await nextvideodata(playqueue[1].songlink) if len(playqueue) > 1 else "Nothing.", inline = True)
         await client.send_message(client.get_channel(gvars.bot), embed = embed)
     return
@@ -317,4 +385,3 @@ async def on_voice_state_update(before, after):
 
 
 client.run(token)
-
