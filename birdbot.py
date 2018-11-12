@@ -287,9 +287,8 @@ async def help(ctx):
 async def displayembed(*args):
     global vplayer
     global playqueue
-    if args[1]:
-        ctx = args[1]
     if args[0] == "Search":
+        ctx = args[1]
         title = args[2]
         embed = discord.Embed(
             colour = discord.Colour.blue()
@@ -331,10 +330,10 @@ async def displayembed(*args):
         embed.add_field(name = 'Up next:' , value = await nextvideodata(playqueue[1].songlink) if len(playqueue) > 1 else "Nothing.", inline = True)
         await client.send_message(client.get_channel(gvars.bot), embed = embed)
     if args[0] == "Enqueue":
+        ctx = args[1]
         content = args[1]
         split = content.message.content.split(" ")
         url = split[1]
-        print(url)
         title = await nextvideodata(url)
         embed = discord.Embed(
             title = title,
