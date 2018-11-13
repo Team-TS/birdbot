@@ -166,6 +166,7 @@ async def join(ctx):
 
 @client.command(pass_context=True)
 async def search(ctx):
+    await join.invoke(ctx)
     global apikey
     global searchlist
     if (len(ctx.message.content) <= 7):
@@ -173,20 +174,20 @@ async def search(ctx):
         return
     split = ctx.message.content.split(" ")
     searchContent = split[1]
-    url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
+    url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
     responce = requests.get(url, verify=True)
     data = responce.json()
     x = 0
     id = []
     title = []
-    while x < 20:
+    while x < 10:
         id.append(data['items'][x]['id']['videoId'])
         title.append(data['items'][x]['snippet']['title'])
         x = x + 1
     await displayembed("Search",ctx,title)
     selection = await client.wait_for_message(timeout = 20,author = ctx.message.author)
     selection = int(selection.content) - 1
-    if selection < 0 or selection > 20:
+    if selection < 0 or selection > 10:
         await client.send_message(ctx.message.author,"Number is too high/low. Please search again in the bot channel to try again.")
         return
     else:
@@ -225,7 +226,7 @@ async def stop(ctx):
     message = message if message != None else "stop"
     authorindex = str(ctx.message.author).rsplit('#', 1)
     authorindex = authorindex[0]
-    if discord.utils.get(ctx.message.author.roles, name ='Admin') == "Admin":
+    if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
         votelist.clear()
         vplayer.stop()
@@ -304,17 +305,8 @@ async def displayembed(*args):
         embed.add_field(name = 'Video 8:', value = '{0}'.format(title[7]), inline = False)
         embed.add_field(name = 'Video 9:', value = '{0}'.format(title[8]), inline = False)
         embed.add_field(name = 'Video 10:', value = '{0}'.format(title[9]), inline = False)
-        embed.add_field(name = 'Video 11:', value = '{0}'.format(title[10]), inline = False)
-        embed.add_field(name = 'Video 12:', value = '{0}'.format(title[11]), inline = False)
-        embed.add_field(name = 'Video 13:', value = '{0}'.format(title[12]), inline = False)
-        embed.add_field(name = 'Video 14:', value = '{0}'.format(title[13]), inline = False)
-        embed.add_field(name = 'Video 15:', value = '{0}'.format(title[14]), inline = False)
-        embed.add_field(name = 'Video 16:', value = '{0}'.format(title[15]), inline = False)
-        embed.add_field(name = 'Video 17:', value = '{0}'.format(title[16]), inline = False)
-        embed.add_field(name = 'Video 18:', value = '{0}'.format(title[17]), inline = False)
-        embed.add_field(name = 'Video 19:', value = '{0}'.format(title[18]), inline = False)
-        embed.add_field(name = 'Video 20:', value = '{0}'.format(title[19]), inline = False)
-        await client.send_message(ctx.message.author, embed = embed)
+        embed.add_field(name = 'Help:', value = "Please enter a number between 1 and 10 with no '!'", inline = False)
+        await client.send_message(client.get_channel(gvars.bot), embed = embed)
         return
     if args[0] == "Playing":
         songduration = divmod(vplayer.duration,60)
@@ -384,3 +376,4 @@ async def on_voice_state_update(before, after):
 
 
 client.run(token)
+
