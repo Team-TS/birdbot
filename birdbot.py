@@ -27,6 +27,9 @@ vplayer = None
 voiceclient = None
 #initial caller
 caller = None
+#countdown bool
+countdownbool = False
+
 #votes
 votelist = {}
 
@@ -58,10 +61,10 @@ async def on_message(message):
 
 async def Autoplay():
     global playqueue
+    global countdownbool
     global vplayer
     global voiceclient
     global volumechange
-    countdownfired = False
     while True:
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
@@ -71,15 +74,16 @@ async def Autoplay():
                     vplayer.volume = volumechange/100
                     await displayembed("Playing")
                     playqueue.pop(0)
-                elif len(playqueue) == 0 and vplayer.is_done() == True and countdownfired == False:
-                    countdownfired = True
-                    x = asyncio.Task(countdown())
-                    if x == False:
-                        countdownfired = x
+                else:
+                    if countdownbool == False:
+                        countdownbool = True
+                        asyncio.Task(countdown())
+
         await asyncio.sleep(5)
 
 async def countdown():
     global vplayer
+    global countdownbool
     global voiceclient
     global caller
     time = 0
@@ -90,9 +94,9 @@ async def countdown():
              voiceclient.channel = None
              caller = None
              vplayer.stop()
+             countdownbool = False
         await asyncio.sleep(1)
-    x = False
-    return x
+    return
 
 @client.event
 async def on_command_error(self, error):
@@ -160,7 +164,7 @@ async def join(ctx):
         caller = ctx.message.author
         await voiceclient.move_to(ctx.message.author.voice.voice_channel)
     else:
-        await client.send_message(client.get_channel(gvars.bot), "The bot is already in another channel!")
+        await client.send_message(client.get_channel(gvars.bot), "The bot is already in a channel!")
     vplayer.stop()
     return
 
@@ -376,4 +380,3 @@ async def on_voice_state_update(before, after):
 
 
 client.run(token)
-
