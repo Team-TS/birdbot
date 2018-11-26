@@ -360,13 +360,6 @@ async def youtubeurlsnipper(x):
 
 @client.event
 async def on_member_join(member):
-    try:
-        if str(discord.utils.get(member.roles, name ='Regular')) != "Regular":
-            role = discord.utils.get(on_member_join.server.roles, name ='Regular')
-            await client.add_roles(member, role)
-    except Exception as error:
-        return print("Error trying to get the 'Regular' server role:'" + error + "'")
-    
     await client.send_message(member.server.get_channel(gvars.general), "{0} has joined the server!".format(member.name))
 
 @client.event
