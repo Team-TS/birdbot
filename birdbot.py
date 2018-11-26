@@ -100,7 +100,7 @@ async def countdown():
 
 @client.event
 async def on_command_error(self, error):
-    await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands!")
+    await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands and their conditions for use!")
     return
 
 async def enqueue(ctx):
@@ -276,15 +276,16 @@ async def help(ctx):
             colour = discord.Colour.orange()
             )
         embed.set_author(name = 'Commands')
+        embed.add_field(name = 'Key: ', value = 'Number followed by an * requires the bot to be in a channel before being used!', inline = True)
         embed.add_field(name = '1: !help', value = 'Provides a list of all available commands.', inline = True)
         embed.add_field(name = '2: !join', value = 'Requests the bot to join the channel you are currently in, Admins are the only ones who can move the bot via this command once it is in a channel.', inline = True)
-        embed.add_field(name = '3: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
-        embed.add_field(name = '4: !play "Youtube Link"', value = 'Enqueues a song to be played by the bo, can only be done if you are in the bots channel.', inline = True)
-        embed.add_field(name = '5: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '6: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '7: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
-        embed.add_field(name = '8: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
-        embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 20 videos matching your parameters, type the number you want to play. This will timeout after 20 seconds.', inline = True)
+        embed.add_field(name = '3*: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
+        embed.add_field(name = '4: !play "Youtube Link"', value = 'Enqueues a song to be played by the bot, can only be done if you are in the bots channel.', inline = True)
+        embed.add_field(name = '5*: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '6*: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '7*: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
+        embed.add_field(name = '8*: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
+        embed.add_field(name = '9*: !search "search parameters"', value = 'Searches Youtube for the top 20 videos matching your parameters, type the number you want to play. This will timeout after 20 seconds.', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
         return
 
