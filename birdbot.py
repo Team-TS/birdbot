@@ -170,33 +170,53 @@ async def join(ctx):
 
 @client.command(pass_context=True)
 async def search(ctx):
-    await join.invoke(ctx)
+    global voiceclient
     global apikey
     global searchlist
+    if voiceclient == None:
+       await join.invoke(ctx)
     if (len(ctx.message.content) <= 7):
         await client.send_message(client.get_channel(gvars.bot), "No topic for search entered!")
         return
     split = ctx.message.content.split(" ")
     searchContent = split[1]
-    url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
+    url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
     responce = requests.get(url, verify=True)
     data = responce.json()
     x = 0
     id = []
     title = []
-    while x < 10:
+    while x < 50:
         id.append(data['items'][x]['id']['videoId'])
         title.append(data['items'][x]['snippet']['title'])
         x = x + 1
-    await displayembed("Search",ctx,title)
-    selection = await client.wait_for_message(timeout = 20,author = ctx.message.author)
-    selection = int(selection.content) - 1
-    if selection < 0 or selection > 10:
-        await client.send_message(ctx.message.author,"Number is too high/low. Please search again in the bot channel to try again.")
-        return
-    else:
-        ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
-        await enqueue(ctx)
+    a = 0
+    while True:
+        await displayembed("Search",ctx,title,a)
+        await client.send_message(client.get_channel(gvars.bot),"Please enter a search command now(Num 1-10,-,+ or x)!")
+        selection = await client.wait_for_message(timeout = 40,author = ctx.message.author)
+        if selection.content == "x":
+            return
+        elif selection.content == "+":
+            if a != 40:
+                a = a + 10
+            else:
+                await client.send_message(client.get_channel(gvars.bot),"You cannot increase this value any further!")
+        elif selection.content == "-":
+            if a != 0:
+                a = a - 10
+            else:
+                await client.send_message(client.get_channel(gvars.bot),"You cannot decrease this value any further!")
+        else:
+            selection = int(selection.content) - 1
+            if selection < 0 or selection > 10:
+                await client.send_message(client.get_channel(gvars.bot),"Number is too high/low. Please search again in the bot channel to try again.")
+                return
+            else:
+                selection = selection + a
+                ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
+                await enqueue(ctx)
+                return
     return
 
 @client.command(pass_context=True)
@@ -296,21 +316,22 @@ async def displayembed(*args):
     if args[0] == "Search":
         ctx = args[1]
         title = args[2]
+        a = args[3]
         embed = discord.Embed(
             colour = discord.Colour.blue()
             )
         embed.set_author(name = 'Search:', icon_url = 'https://cdn1.iconfinder.com/data/icons/hawcons/32/698627-icon-111-search-512.png')
-        embed.add_field(name = 'Video 1:', value = '{0}'.format(title[0]), inline = False)
-        embed.add_field(name = 'Video 2:', value = '{0}'.format(title[1]), inline = False)
-        embed.add_field(name = 'Video 3:', value = '{0}'.format(title[2]), inline = False)
-        embed.add_field(name = 'Video 4:', value = '{0}'.format(title[3]), inline = False)
-        embed.add_field(name = 'Video 5:', value = '{0}'.format(title[4]), inline = False)
-        embed.add_field(name = 'Video 6:', value = '{0}'.format(title[5]), inline = False)
-        embed.add_field(name = 'Video 7:', value = '{0}'.format(title[6]), inline = False)
-        embed.add_field(name = 'Video 8:', value = '{0}'.format(title[7]), inline = False)
-        embed.add_field(name = 'Video 9:', value = '{0}'.format(title[8]), inline = False)
-        embed.add_field(name = 'Video 10:', value = '{0}'.format(title[9]), inline = False)
-        embed.add_field(name = 'Help:', value = "Please enter a number between 1 and 10 with no '!'", inline = False)
+        embed.add_field(name = 'Video 1:', value = '{0}'.format(title[a]), inline = False)
+        embed.add_field(name = 'Video 2:', value = '{0}'.format(title[a+1]), inline = False)
+        embed.add_field(name = 'Video 3:', value = '{0}'.format(title[a+2]), inline = False)
+        embed.add_field(name = 'Video 4:', value = '{0}'.format(title[a+3]), inline = False)
+        embed.add_field(name = 'Video 5:', value = '{0}'.format(title[a+4]), inline = False)
+        embed.add_field(name = 'Video 6:', value = '{0}'.format(title[a+5]), inline = False)
+        embed.add_field(name = 'Video 7:', value = '{0}'.format(title[a+6]), inline = False)
+        embed.add_field(name = 'Video 8:', value = '{0}'.format(title[a+7]), inline = False)
+        embed.add_field(name = 'Video 9:', value = '{0}'.format(title[a+8]), inline = False)
+        embed.add_field(name = 'Video 10:', value = '{0}'.format(title[a+9]), inline = False)
+        embed.add_field(name = 'Help:', value = "Please enter a number between 1 and 10 with no '!'. To cancel type 'x' or wait 40 seconds, to see the next 10 results type '+', to see the last 10 results type '-'", inline = False)
         await client.send_message(client.get_channel(gvars.bot), embed = embed)
         return
     if args[0] == "Playing":
