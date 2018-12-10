@@ -65,10 +65,12 @@ async def Autoplay():
     global vplayer
     global voiceclient
     global volumechange
+    global votelist
     while True:
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
+                    votelist.clear()
                     vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink)
                     vplayer.start()
                     vplayer.volume = volumechange/100
