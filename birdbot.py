@@ -29,6 +29,8 @@ voiceclient = None
 caller = None
 #countdown bool
 countdownbool = False
+#searchbool
+isSearching = False
 
 #votes
 votelist = {}
@@ -88,8 +90,9 @@ async def countdown():
     global countdownbool
     global voiceclient
     global caller
+    global isSearching
     time = 0
-    while not vplayer.is_playing() and voiceclient.channel != None:
+    while not vplayer.is_playing() and voiceclient.channel != None and isSearching == False:
         time = time + 1
         if time == 30:
              await voiceclient.disconnect()
@@ -129,7 +132,7 @@ async def volume(ctx):
         else:
             volumechange = link
             vplayer.volume = volumechange/100
-            await client.send_message(client.get_channel(gvars.bot), "The bot's volume is now at: {0}%!".format(volumechange))
+            await client.send_message(client.get_channel(gvars.bot), "The bots volume is now at: {0}%!".format(volumechange))
     else:
         await client.send_message(client.get_channel(gvars.bot), "You are not in the bots channel!")
     return
@@ -175,6 +178,8 @@ async def search(ctx):
     global voiceclient
     global apikey
     global searchlist
+    global isSearching
+    isSearching = True
     if voiceclient == None:
        await join.invoke(ctx)
     if (len(ctx.message.content) <= 7):
@@ -219,6 +224,7 @@ async def search(ctx):
                 ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
                 await enqueue(ctx)
                 return
+    isSearching = False
     return
 
 @client.command(pass_context=True)
