@@ -96,8 +96,8 @@ async def countdown():
              voiceclient.channel = None
              caller = None
              vplayer.stop()
-             countdownbool = False
         await asyncio.sleep(1)
+    countdownbool = False
     return
 
 @client.event
