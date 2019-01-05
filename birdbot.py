@@ -193,7 +193,6 @@ async def search(ctx):
     global apikey
     global searchlist
     global timer
-    timer = -10
     if voiceclient == None:
         await join.invoke(ctx)
     if (len(ctx.message.content) <= 7):
@@ -215,6 +214,7 @@ async def search(ctx):
     while True:
         await displayembed("Search",ctx,title,a)
         await client.send_message(client.get_channel(gvars.bot),"Please enter a search command now(Num 1-10,-,+ or x)!")
+        timer = -40
         selection = await client.wait_for_message(timeout = 40,author = ctx.message.author)
         if selection.content == "x":
             return
