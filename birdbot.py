@@ -199,7 +199,7 @@ async def search(ctx):
         await client.send_message(client.get_channel(gvars.bot), "No topic for search entered!")
         return
     split = ctx.message.content.split(" ")
-    searchContent = split[1]
+    searchContent = split[1:]
     url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&order=relevance&q={0}&type=video&key={1}'.format(searchContent,apikey)
     responce = requests.get(url, verify=True)
     data = responce.json()
