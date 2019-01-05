@@ -9,7 +9,7 @@ import urllib.request
 import json
 import io
 import requests
-
+from datetime import datetime
 
 # Load Config file for token
 config = Config()
@@ -29,9 +29,10 @@ voiceclient = None
 caller = None
 #countdown bool
 countdownbool = False
-#searchbool
-isSearching = False
-
+#timer
+timer = 0
+#error log
+errorloglist = []
 #votes
 votelist = {}
 
@@ -73,7 +74,7 @@ async def Autoplay():
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
                     votelist.clear()
-                    vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink)
+                    vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
                     vplayer.start()
                     vplayer.volume = volumechange/100
                     await displayembed("Playing")
@@ -90,22 +91,35 @@ async def countdown():
     global countdownbool
     global voiceclient
     global caller
-    global isSearching
-    time = 0
-    while not vplayer.is_playing() and voiceclient.channel != None and isSearching == False:
-        time = time + 1
-        if time == 30:
+    global timer
+    while not vplayer.is_playing() and voiceclient.channel != None:
+        timer = timer + 1
+        if timer == 30:
              await voiceclient.disconnect()
              voiceclient.channel = None
              caller = None
              vplayer.stop()
         await asyncio.sleep(1)
     countdownbool = False
+    timer = 0
     return
 
 @client.event
 async def on_command_error(self, error):
-    await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands and their conditions for use!")
+    global errorloglist
+    error = error.message.content
+    await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands and their conditions for use! This was the command that caused the error: {0}".format(error))
+    errorloglist.append(error+" at "+str(datetime.now()))
+    if len(errorloglist) > 20:
+        errorloglist.remove[0]
+    return
+
+@client.command(pass_context=True)
+async def errorlog(ctx):
+    global errorloglist
+    if str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
+        for error in errorloglist:
+            await client.send_message(client.get_channel(gvars.bot), error)
     return
 
 async def enqueue(ctx):
@@ -178,10 +192,9 @@ async def search(ctx):
     global voiceclient
     global apikey
     global searchlist
-    global isSearching
-    isSearching = True
+    global timer
     if voiceclient == None:
-       await join.invoke(ctx)
+        await join.invoke(ctx)
     if (len(ctx.message.content) <= 7):
         await client.send_message(client.get_channel(gvars.bot), "No topic for search entered!")
         return
@@ -201,6 +214,7 @@ async def search(ctx):
     while True:
         await displayembed("Search",ctx,title,a)
         await client.send_message(client.get_channel(gvars.bot),"Please enter a search command now(Num 1-10,-,+ or x)!")
+        timer = -40
         selection = await client.wait_for_message(timeout = 40,author = ctx.message.author)
         if selection.content == "x":
             return
@@ -224,7 +238,7 @@ async def search(ctx):
                 ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
                 await enqueue(ctx)
                 return
-    isSearching = False
+
     return
 
 @client.command(pass_context=True)
@@ -304,16 +318,17 @@ async def help(ctx):
             colour = discord.Colour.orange()
             )
         embed.set_author(name = 'Commands')
-        embed.add_field(name = 'Key: ', value = 'Number followed by an * requires the bot to be in a channel before being used!', inline = True)
         embed.add_field(name = '1: !help', value = 'Provides a list of all available commands.', inline = True)
         embed.add_field(name = '2: !join', value = 'Requests the bot to join the channel you are currently in, Admins are the only ones who can move the bot via this command once it is in a channel.', inline = True)
-        embed.add_field(name = '3*: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
+        embed.add_field(name = '3: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
         embed.add_field(name = '4: !play "Youtube Link"', value = 'Enqueues a song to be played by the bot, can only be done if you are in the bots channel.', inline = True)
-        embed.add_field(name = '5*: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '6*: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '7*: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
-        embed.add_field(name = '8*: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
-        embed.add_field(name = '9*: !search "search parameters"', value = 'Searches Youtube for the top 20 videos matching your parameters, type the number you want to play. This will timeout after 20 seconds.', inline = True)
+        embed.add_field(name = '5: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '6: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '7: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
+        embed.add_field(name = '8: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
+        embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 50 videos matching your parameters (only shows 10 at a time), type the number you want to play. This will timeout after 20 seconds.', inline = True)
+        embed.add_field(name = '10: !volume', value = 'Changes the bots volume.', inline = True)
+        embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent errors including the time it occured on the bot, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
         return
 
