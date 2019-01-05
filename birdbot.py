@@ -145,7 +145,7 @@ async def volume(ctx):
         else:
             volumechange = link
             vplayer.volume = volumechange/100
-            await client.send_message(client.get_channel(gvars.bot), "The bot's volume is now at: {0}%!".format(volumechange))
+            await client.send_message(client.get_channel(gvars.bot), "The bots volume is now at: {0}%!".format(volumechange))
     else:
         await client.send_message(client.get_channel(gvars.bot), "You are not in the bots channel!")
     return
@@ -318,17 +318,17 @@ async def help(ctx):
             colour = discord.Colour.orange()
             )
         embed.set_author(name = 'Commands')
-        embed.add_field(name = 'Key: ', value = 'Number followed by an * requires the bot to be in a channel before being used!', inline = True)
         embed.add_field(name = '1: !help', value = 'Provides a list of all available commands.', inline = True)
         embed.add_field(name = '2: !join', value = 'Requests the bot to join the channel you are currently in, Admins are the only ones who can move the bot via this command once it is in a channel.', inline = True)
-        embed.add_field(name = '3*: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
+        embed.add_field(name = '3: !leave', value = 'Requests the bot to leave the channel, Admins are the only ones who can request the bot to leave aside from the initial caller.', inline = True)
         embed.add_field(name = '4: !play "Youtube Link"', value = 'Enqueues a song to be played by the bot, can only be done if you are in the bots channel.', inline = True)
-        embed.add_field(name = '5*: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '6*: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
-        embed.add_field(name = '7*: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
-        embed.add_field(name = '8*: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
-        embed.add_field(name = '9*: !search "search parameters"', value = 'Searches Youtube for the top 50 videos matching your parameters (only shows 10 at a time), type the number you want to play. This will timeout after 20 seconds.', inline = True)
-        embed.add_field(name = '10: !errorlog', value = 'Prints of list of 20 of the most recent errors including the time it occured on the bot, DEV ONLY!', inline = True)
+        embed.add_field(name = '5: !stop', value = 'Stops the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '6: !skip', value = 'Skips the current song being played by the bot, requires a majority vote or can be instantly passed by an admin.', inline = True)
+        embed.add_field(name = '7: !pause', value = 'Pauses the bot, requires the caller or an admin.', inline = True)
+        embed.add_field(name = '8: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
+        embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 50 videos matching your parameters (only shows 10 at a time), type the number you want to play. This will timeout after 20 seconds.', inline = True)
+        embed.add_field(name = '10: !volume', value = 'Changes the bots volume.', inline = True)
+        embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent errors including the time it occured on the bot, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
         return
 
