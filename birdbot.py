@@ -29,8 +29,8 @@ voiceclient = None
 caller = None
 #countdown bool
 countdownbool = False
-#searchbool
-isSearching = False
+#timer
+timer = 0
 #error log
 errorloglist = []
 #votes
@@ -68,10 +68,12 @@ async def Autoplay():
     global vplayer
     global voiceclient
     global volumechange
+    global votelist
     while True:
         if voiceclient != None and vplayer != None:
             if voiceclient.is_connected() != False:
                 if len(playqueue) >= 1 and vplayer.is_playing() == False:
+                    votelist.clear()
                     vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
                     vplayer.start()
                     vplayer.volume = volumechange/100
@@ -89,18 +91,17 @@ async def countdown():
     global countdownbool
     global voiceclient
     global caller
-    global isSearching
-    time = 0
-    while not vplayer.is_playing() and voiceclient.channel != None and isSearching == False:
-        time = time + 1
-        if time == 30:
-             print(isSearching)
+    global timer
+    while not vplayer.is_playing() and voiceclient.channel != None:
+        timer = timer + 1
+        if timer == 30:
              await voiceclient.disconnect()
              voiceclient.channel = None
              caller = None
              vplayer.stop()
         await asyncio.sleep(1)
     countdownbool = False
+    timer = 0
     return
 
 @client.event
@@ -191,8 +192,8 @@ async def search(ctx):
     global voiceclient
     global apikey
     global searchlist
-    global isSearching
-    isSearching = True
+    global timer
+    timer = -10
     if voiceclient == None:
         await join.invoke(ctx)
     if (len(ctx.message.content) <= 7):
@@ -238,7 +239,6 @@ async def search(ctx):
                 await enqueue(ctx)
                 return
 
-    isSearching = False
     return
 
 @client.command(pass_context=True)
