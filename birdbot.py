@@ -118,8 +118,11 @@ async def on_command_error(self, error):
 async def errorlog(ctx):
     global errorloglist
     if str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
-        for error in errorloglist:
-            await client.send_message(client.get_channel(gvars.bot), error)
+        if len(errorloglist) == 0:
+            await client.send_message(client.get_channel(gvars.bot), "No errors to report!")
+        else:
+            for error in errorloglist:
+                await client.send_message(client.get_channel(gvars.bot), error)
     return
 
 async def enqueue(ctx):
