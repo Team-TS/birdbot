@@ -267,14 +267,15 @@ async def stop(ctx):
     global vplayer
     global voiceclient
     global votelist
+    # check to see if the bot exists
     if vplayer == None or voiceclient == None or voiceclient.is_connected() == False or vplayer.is_playing() == False:
         await client.send_message(client.get_channel(gvars.bot), "Bot does not exist yet.")
         return
+    # breakdown content of message, this is used to change the dialogue from stop to skip.
     message = ctx.message.content
     message = message.replace("!","")
     message = message if message != None else "stop"
-    authorindex = str(ctx.message.author).rsplit('#', 1)
-    authorindex = authorindex[0]
+    authorindex = ctx.message.author
     if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
         votelist.clear()
@@ -292,6 +293,8 @@ async def stop(ctx):
                     vplayer.stop()
                     votelist.clear()
                     return
+            authorindex = str(ctx.message.author).rsplit('#', 1)
+            authorindex = authorindex[0]
             await client.send_message(client.get_channel(gvars.bot), "{0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(authorindex, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
         else:
             await client.send_message(client.get_channel(gvars.bot), "You have already voted!")
