@@ -215,32 +215,34 @@ async def search(ctx):
         x = x + 1
     a = 0
     while True:
-        await displayembed("Search",ctx,title,a)
-        await client.send_message(client.get_channel(gvars.bot),"Please enter a search command now(Num 1-10,-,+ or x)!")
         timer = -40
+        await displayembed("Search",ctx,title,a)
         selection = await client.wait_for_message(timeout = 40,author = ctx.message.author)
-        if selection.content == "x":
+        if selection.content == "x" or selection.content == "cancel" or selection.content == "Cancel":
             return
-        elif selection.content == "+":
+        elif selection.content == "+" or selection.content == "next" or selection.content == "Next":
             if a != 40:
                 a = a + 10
             else:
                 await client.send_message(client.get_channel(gvars.bot),"You cannot increase this value any further!")
-        elif selection.content == "-":
+        elif selection.content == "-" or selection.content == "back" or selection.content == "Back":
             if a != 0:
                 a = a - 10
             else:
                 await client.send_message(client.get_channel(gvars.bot),"You cannot decrease this value any further!")
         else:
-            selection = int(selection.content) - 1
-            if selection < 0 or selection > 10:
-                await client.send_message(client.get_channel(gvars.bot),"Number is too high/low. Please search again in the bot channel to try again.")
-                return
+            if selection.content.isdigit() == True:
+                selection = int(selection.content)
+                if selection < 1 or selection > 10:
+                    await client.send_message(client.get_channel(gvars.bot),"Number is too high/low. Please search again in the bot channel to try again.")
+                    return
+                else:
+                    selection = selection + a - 1
+                    ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
+                    await enqueue(ctx)
+                    return
             else:
-                selection = selection + a
-                ctx.message.content = "!search https://www.youtube.com/watch?v={0}".format(id[selection])
-                await enqueue(ctx)
-                return
+                await client.send_message(client.get_channel(gvars.bot),"Incorrect input, please see the bottom of the search function for more info or type !help.")
 
     return
 
@@ -267,14 +269,15 @@ async def stop(ctx):
     global vplayer
     global voiceclient
     global votelist
+    # check to see if the bot exists
     if vplayer == None or voiceclient == None or voiceclient.is_connected() == False or vplayer.is_playing() == False:
         await client.send_message(client.get_channel(gvars.bot), "Bot does not exist yet.")
         return
+    # breakdown content of message, this is used to change the dialogue from stop to skip.
     message = ctx.message.content
     message = message.replace("!","")
     message = message if message != None else "stop"
-    authorindex = str(ctx.message.author).rsplit('#', 1)
-    authorindex = authorindex[0]
+    authorindex = ctx.message.author
     if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin":
         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
         votelist.clear()
@@ -292,6 +295,8 @@ async def stop(ctx):
                     vplayer.stop()
                     votelist.clear()
                     return
+            authorindex = str(ctx.message.author).rsplit('#', 1)
+            authorindex = authorindex[0]
             await client.send_message(client.get_channel(gvars.bot), "{0} has voted to {2} the music bot, {1} more votes are required for this to pass!".format(authorindex, round(len(voiceclient.channel.voice_members)/2) - len(votelist), message))
         else:
             await client.send_message(client.get_channel(gvars.bot), "You have already voted!")
@@ -347,16 +352,10 @@ async def displayembed(*args):
             colour = discord.Colour.blue()
             )
         embed.set_author(name = 'Search:', icon_url = 'https://cdn1.iconfinder.com/data/icons/hawcons/32/698627-icon-111-search-512.png')
-        embed.add_field(name = 'Video 1:', value = '{0}'.format(title[a]), inline = False)
-        embed.add_field(name = 'Video 2:', value = '{0}'.format(title[a+1]), inline = False)
-        embed.add_field(name = 'Video 3:', value = '{0}'.format(title[a+2]), inline = False)
-        embed.add_field(name = 'Video 4:', value = '{0}'.format(title[a+3]), inline = False)
-        embed.add_field(name = 'Video 5:', value = '{0}'.format(title[a+4]), inline = False)
-        embed.add_field(name = 'Video 6:', value = '{0}'.format(title[a+5]), inline = False)
-        embed.add_field(name = 'Video 7:', value = '{0}'.format(title[a+6]), inline = False)
-        embed.add_field(name = 'Video 8:', value = '{0}'.format(title[a+7]), inline = False)
-        embed.add_field(name = 'Video 9:', value = '{0}'.format(title[a+8]), inline = False)
-        embed.add_field(name = 'Video 10:', value = '{0}'.format(title[a+9]), inline = False)
+        iter = 0
+        while iter < 10:
+            embed.add_field(name = 'Video {0}:'.format(iter+1), value = '{0}'.format(title[a+iter]), inline = False)
+            iter = iter + 1
         embed.add_field(name = 'Help:', value = "Please enter a number between 1 and 10 with no '!'. To cancel type 'x' or wait 40 seconds, to see the next 10 results type '+', to see the last 10 results type '-'", inline = False)
         await client.send_message(client.get_channel(gvars.bot), embed = embed)
         return
