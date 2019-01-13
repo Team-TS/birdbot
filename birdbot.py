@@ -111,7 +111,7 @@ async def on_command_error(self, error):
     await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands and their conditions for use! This was the command that caused the error: {0}".format(error))
     errorloglist.append(error+" at "+str(datetime.now()))
     if len(errorloglist) > 20:
-        errorloglist.remove[0]
+        errorloglist.remove(0)
     return
 
 @client.command(pass_context=True)
