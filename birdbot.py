@@ -11,6 +11,9 @@ import io
 import requests
 from datetime import datetime
 
+#botVersion
+botVersion = "V1.0.0"
+
 # Load Config file for token
 config = Config()
 # yapi key
@@ -104,6 +107,13 @@ async def countdown():
     timer = 0
     return
 
+@client.command(pass_context=True)
+async def botversion(ctx):
+    global botVersion
+    if str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
+        await client.send_message(client.get_channel(gvars.bot), botVersion)
+    return
+
 @client.event
 async def on_command_error(self, error):
     global errorloglist
@@ -111,7 +121,7 @@ async def on_command_error(self, error):
     await client.send_message(client.get_channel(gvars.bot), "Invalid command! Please type !help to see all available commands and their conditions for use! This was the command that caused the error: {0}".format(error))
     errorloglist.append(error+" at "+str(datetime.now()))
     if len(errorloglist) > 20:
-        errorloglist.remove(0)
+        errorloglist.pop(0)
     return
 
 @client.command(pass_context=True)
@@ -337,6 +347,7 @@ async def help(ctx):
         embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 50 videos matching your parameters (only shows 10 at a time), type the number you want to play. This will timeout after 20 seconds.', inline = True)
         embed.add_field(name = '10: !volume', value = 'Changes the bots volume.', inline = True)
         embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent errors including the time it occured on the bot, DEV ONLY!', inline = True)
+        embed.add_field(name = '12: !botversion', value = 'Shows the current bots version, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
         return
 
