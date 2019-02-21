@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.1.0"
+botVersion = "V1.2.0"
 #errordump
 file = None
 
@@ -116,14 +116,55 @@ async def countdown():
         countdownbool = False
         timer = 0
     except Exception as e:
-        await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
+            await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
     return
 
 async def write_errors(error):
-    global file
-    file = open("BirdBotErrorDump.txt", 'a+')
-    file.write("{0} \n".format(error))
-    file.close()
+    try:
+        x = ["Exception occured in enqueue: Destination must be Channel, PrivateChannel, User, or Object. Received NoneType"]
+        if any(word in error for word in x):
+            return
+        global file
+        file = open("BirdBotErrorDump.txt", 'a+')
+        file.write("{0} \n".format(error))
+        file.close()
+    except Exception as e:
+        await write_errors("Exception occured in write_errors: {0} at {1}".format(e, str(datetime.now())))
+    return
+
+@client.command(pass_context=True)
+async def emptyerrorfile(ctx):
+    try:
+        if str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
+            global file
+            file = open("BirdBotErrorDump.txt", 'w')
+            file.close()
+            await client.send_message(client.get_channel(gvars.bot), "Error file emptied!")
+        else:
+            await client.send_message(client.get_channel(gvars.bot), "This is a dev only command!")
+    except Exception as e:
+        await write_errors("Exception occured in emptyerrorfile: {0} at {1}".format(e, str(datetime.now())))
+    return
+
+@client.command(pass_context=True)
+async def errorfile(ctx):
+    try:
+        global file
+        if str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
+            i = 0
+            file = open("BirdBotErrorDump.txt")
+            lines = file.read().splitlines()
+            file.close()
+            if len(lines) > 0:
+                for line in lines:
+                    await client.send_message(client.get_channel(gvars.bot), "{0}: {1}".format(i,line))
+                    i = i + 1
+            else:
+                await client.send_message(client.get_channel(gvars.bot), "The error file is empty!")
+        else:
+            await client.send_message(client.get_channel(gvars.bot), "This is a dev only command!")
+    except Exception as e:
+        await write_errors("Exception occured in errorfile: {0} at {1}".format(e, str(datetime.now())))
     return
 
 @client.command(pass_context=True)
@@ -171,7 +212,7 @@ async def enqueue(ctx):
         music = Song.Song(link, ctx.message.channel, ctx.message.author)
         await displayembed("Enqueue",ctx)
         playqueue.append(music)
-    except Exception as e:
+    except Exception as e:  
         await write_errors("Exception occured in enqueue: {0} at {1}".format(e, str(datetime.now())))
     return
 
@@ -404,8 +445,10 @@ async def help(ctx):
         embed.add_field(name = '8: !resume', value = 'Resumes the bot, requires the caller or an admin', inline = True)
         embed.add_field(name = '9: !search "search parameters"', value = 'Searches Youtube for the top 50 videos matching your parameters (only shows 10 at a time), type the number you want to play. This will timeout after 20 seconds.', inline = True)
         embed.add_field(name = '10: !volume', value = 'Changes the bots volume.', inline = True)
-        embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent errors including the time it occured on the bot, DEV ONLY!', inline = True)
+        embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent COMMAND errors including the time it occured on the bot, DEV ONLY!', inline = True)
         embed.add_field(name = '12: !botversion', value = 'Shows the current bots version, DEV ONLY!', inline = True)
+        embed.add_field(name = '11: !emptyerrorfile', value = 'Emptys the error file containing function exceptions only, DEV ONLY!', inline = True)
+        embed.add_field(name = '11: !errorfile', value = 'Prints off any exception errors in the error file, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
     except Exception as e:
         await write_errors("Exception occured in help: {0} at {1}".format(e, str(datetime.now())))
