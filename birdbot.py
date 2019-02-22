@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.2.0"
+botVersion = "V1.2.1"
 #errordump
 file = None
 
@@ -116,14 +116,11 @@ async def countdown():
         countdownbool = False
         timer = 0
     except Exception as e:
-        await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
+            await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
     return
 
 async def write_errors(error):
     try:
-        x = ["Exception occured in enqueue: Destination must be Channel, PrivateChannel, User, or Object. Received NoneType"]
-        if any(word in error for word in x):
-            return
         global file
         file = open("BirdBotErrorDump.txt", 'a+')
         file.write("{0} \n".format(error))
@@ -541,12 +538,11 @@ async def on_voice_state_update(before, after):
     try:
         bchan = before.voice.voice_channel
         achan = after.voice.voice_channel
-
         if achan == bchan:
             return
         await client.send_message(before.server.get_channel(gvars.voicelog), "{0} has switched from {1} to {2}".format(before.name, bchan, achan))
     except Exception as e:
-        await write_errors("Exception occured in enqueue: {0} at {1}".format(e, str(datetime.now())))
+        await write_errors("Exception occured in on_voice_state_update: {0} at {1}".format(e, str(datetime.now())))
     return
 
 
