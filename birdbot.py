@@ -116,7 +116,7 @@ async def countdown():
         countdownbool = False
         timer = 0
     except Exception as e:
-            await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
+        await write_errors("Exception occured in countdown: {0} at {1}".format(e, str(datetime.now())))
     return
 
 async def write_errors(error):
