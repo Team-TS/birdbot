@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.2.1"
+botVersion = "V1.2.2"
 #errordump
 file = None
 
@@ -154,7 +154,7 @@ async def errorfile(ctx):
             file.close()
             if len(lines) > 0:
                 for line in lines:
-                    await client.send_message(client.get_channel(gvars.bot), "{0}: {1}".format(i,line))
+                    await client.send_message(client.get_channel(gvars.bot), "Error line {0}: {1}".format(i,line))
                     i = i + 1
             else:
                 await client.send_message(client.get_channel(gvars.bot), "The error file is empty!")
