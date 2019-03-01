@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.2.2"
+botVersion = "V1.2.3"
 #errordump
 file = None
 
@@ -205,7 +205,9 @@ async def enqueue(ctx):
     global playqueue
     try:
         split = ctx.message.content.split(" ")
-        link = split[1]
+        split = split[1]
+        split = split.split("&")
+        link = split[0]
         music = Song.Song(link, ctx.message.channel, ctx.message.author)
         await displayembed("Enqueue",ctx)
         playqueue.append(music)
