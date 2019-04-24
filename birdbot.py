@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.2.3"
+botVersion = "V1.2.4"
 #errordump
 file = None
 
@@ -77,14 +77,14 @@ async def Autoplay():
     global vplayer
     global voiceclient
     global volumechange
-    global votelist
+    global votelist 
     try:
         while True:
             if voiceclient != None and vplayer != None:
                 if voiceclient.is_connected() != False:
                     if len(playqueue) >= 1 and vplayer.is_playing() == False:
                         votelist.clear()
-                        vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
+                        vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
                         vplayer.start()
                         vplayer.volume = volumechange/100
                         await displayembed("Playing")
@@ -96,6 +96,7 @@ async def Autoplay():
             await asyncio.sleep(5)
     except Exception as e:
         await write_errors("Exception occured in Autoplay: {0} at {1}".format(e, str(datetime.now())))
+        asyncio.Task(Autoplay())
     return
 
 async def countdown():
