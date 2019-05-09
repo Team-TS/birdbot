@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.2.4"
+botVersion = "V1.3.0"
 #errordump
 file = None
 
@@ -96,7 +96,6 @@ async def Autoplay():
             await asyncio.sleep(5)
     except Exception as e:
         await write_errors("Exception occured in Autoplay: {0} at {1}".format(e, str(datetime.now())))
-        asyncio.Task(Autoplay())
     return
 
 async def countdown():
