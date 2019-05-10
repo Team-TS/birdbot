@@ -5,10 +5,9 @@ import sys
 
 def startup():
     location = os.path.join(sys.path[0],'birdbot.py')
-    print(location)
-    running = None
+    print("Bot Startup Script initialised...")
     while True:
-        if running == None:
-            running = Popen(['python', location])
-        time.sleep(5)
+        running = Popen(['python', location])
+        running.wait()
+        print("The bot has just crashed... Restarting.")
 startup()
