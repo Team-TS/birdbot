@@ -13,7 +13,7 @@ import requests
 from datetime import datetime
 
 #botVersion
-botVersion = "V1.3.0"
+botVersion = "V1.3.1"
 #errordump
 file = None
 
@@ -428,6 +428,15 @@ async def pause(ctx):
     return
 
 @client.command(pass_context=True)
+async def kill(ctx):
+    try:
+        if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin" or caller == ctx.message.author:
+            exit()
+    except Exception as e:
+        await write_errors("Exception occured in kill: {0} at {1}".format(e, str(datetime.now())))
+    return
+
+@client.command(pass_context=True)
 async def help(ctx):
     try:
         embed = discord.Embed(
@@ -446,8 +455,9 @@ async def help(ctx):
         embed.add_field(name = '10: !volume', value = 'Changes the bots volume.', inline = True)
         embed.add_field(name = '11: !errorlog', value = 'Prints off a list containing 20 of the most recent COMMAND errors including the time it occured on the bot, DEV ONLY!', inline = True)
         embed.add_field(name = '12: !botversion', value = 'Shows the current bots version, DEV ONLY!', inline = True)
-        embed.add_field(name = '11: !emptyerrorfile', value = 'Emptys the error file containing function exceptions only, DEV ONLY!', inline = True)
-        embed.add_field(name = '11: !errorfile', value = 'Prints off any exception errors in the error file, DEV ONLY!', inline = True)
+        embed.add_field(name = '13: !emptyerrorfile', value = 'Emptys the error file containing function exceptions only, DEV ONLY!', inline = True)
+        embed.add_field(name = '14: !errorfile', value = 'Prints off any exception errors in the error file, DEV ONLY!', inline = True)
+         embed.add_field(name = '15: !kill', value = 'Kills the current instance of the bot, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
     except Exception as e:
         await write_errors("Exception occured in help: {0} at {1}".format(e, str(datetime.now())))
