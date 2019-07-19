@@ -78,8 +78,8 @@ async def Autoplay():
     global voiceclient
     global volumechange
     global votelist 
-    try:
-        while True:
+    while True:
+        try:
             if voiceclient != None and vplayer != None:
                 if voiceclient.is_connected() != False:
                     if len(playqueue) >= 1 and vplayer.is_playing() == False:
@@ -94,8 +94,10 @@ async def Autoplay():
                             countdownbool = True
                             asyncio.Task(countdown())
             await asyncio.sleep(5)
-    except Exception as e:
-        await write_errors("Exception occured in Autoplay: {0} at {1}".format(e, str(datetime.now())))
+        except Exception as e:
+            await write_errors("Exception occured in Autoplay: {0} at {1}".format(e, str(datetime.now())))
+            await client.send_message(client.get_channel(gvars.bot), "An error occured trying to play the current song, please try again and ensure the input command is correct!")
+            playqueue.pop(0)
     return
 
 async def countdown():
