@@ -11,9 +11,10 @@ import io
 import os
 import requests
 from datetime import datetime
+import sys
 
 #botVersion
-botVersion = "V1.3.1"
+botVersion = "V1.3.3"
 #errordump
 file = None
 
@@ -50,10 +51,12 @@ volumechange = 100.0
 playqueue = []
 
 
+
 # Initialise function
 @client.event
 async def on_ready():
     asyncio.Task(Autoplay())
+    await client.send_message(client.get_channel(gvars.bot), "The Bot is now online!")
     print("Birdbot online!")
 
 @client.event
@@ -433,7 +436,9 @@ async def pause(ctx):
 async def kill(ctx):
     try:
         if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin" or caller == ctx.message.author:
-            exit()
+            await client.send_message(client.get_channel(gvars.bot), "The faulty bot is being murdered, please wait a few seconds while a new one respawns!")
+            print("Bot is dead x_x")
+            sys.exit()
     except Exception as e:
         await write_errors("Exception occured in kill: {0} at {1}".format(e, str(datetime.now())))
     return
