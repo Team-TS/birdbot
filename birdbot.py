@@ -459,7 +459,7 @@ async def help(ctx):
         embed.add_field(name = '12: !botversion', value = 'Shows the current bots version, DEV ONLY!', inline = True)
         embed.add_field(name = '13: !emptyerrorfile', value = 'Emptys the error file containing function exceptions only, DEV ONLY!', inline = True)
         embed.add_field(name = '14: !errorfile', value = 'Prints off any exception errors in the error file, DEV ONLY!', inline = True)
-         embed.add_field(name = '15: !kill', value = 'Kills the current instance of the bot, DEV ONLY!', inline = True)
+        embed.add_field(name = '15: !kill', value = 'Kills the current instance of the bot, DEV ONLY!', inline = True)
         await client.send_message(ctx.message.author, embed = embed)
     except Exception as e:
         await write_errors("Exception occured in help: {0} at {1}".format(e, str(datetime.now())))
