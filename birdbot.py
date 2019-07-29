@@ -14,7 +14,7 @@ from datetime import datetime
 import sys
 
 #botVersion
-botVersion = "V1.3.3"
+botVersion = "V1.3.4"
 
 #errordump
 file = None
@@ -436,7 +436,7 @@ async def pause(ctx):
 @client.command(pass_context=True)
 async def kill(ctx):
     try:
-        if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin" or caller == ctx.message.author:
+        if str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin" or str(discord.utils.get(ctx.message.author.roles, name ='Dev')) == "Dev":
             await client.send_message(client.get_channel(gvars.bot), "The faulty bot is being murdered, please wait a few seconds while a new one respawns!")
             print("Bot is dead x_x")
             sys.exit()
