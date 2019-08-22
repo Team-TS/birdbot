@@ -85,7 +85,6 @@ async def Autoplay():
             if voiceclient != None and vplayer != None:
                 if voiceclient.is_connected() != False:
                     if len(playqueue) >= 1 and vplayer.is_playing() == False:
-                        print("test1")
                         votelist.clear()
                         vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
                         vplayer.start()
