@@ -14,8 +14,7 @@ from datetime import datetime
 import sys
 
 #botVersion
-botVersion = "V1.3.4"
-
+botVersion = "V1.3.5"
 #errordump
 file = None
 
@@ -52,7 +51,6 @@ volumechange = 100.0
 playqueue = []
 
 
-
 # Initialise function
 @client.event
 async def on_ready():
@@ -81,12 +79,13 @@ async def Autoplay():
     global vplayer
     global voiceclient
     global volumechange
-    global votelist 
+    global votelist
     while True:
         try:
             if voiceclient != None and vplayer != None:
                 if voiceclient.is_connected() != False:
                     if len(playqueue) >= 1 and vplayer.is_playing() == False:
+                        print("test1")
                         votelist.clear()
                         vplayer = await voiceclient.create_ytdl_player(playqueue[0].songlink, ytdl_options=None, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
                         vplayer.start()
@@ -367,7 +366,6 @@ async def skip(ctx):
         await write_errors("Exception occured in skip: {0} at {1}".format(e, str(datetime.now())))
     return
 
-
 @client.command(pass_context=True)
 async def stop(ctx):
     global vplayer
@@ -389,7 +387,7 @@ async def stop(ctx):
             vplayer.stop()
         else:
             if ('{0}'.format(authorindex) in votelist) == False:
-                votelist['{0}'.format(authorindex)] = ctx.message.author
+                votelist.append(ctx.message.author)
                 if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                     # Check the existing list to see if everyone is in the channel who is in the list, if they are not remove them.
                     for name in votelist.copy():
