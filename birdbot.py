@@ -14,7 +14,7 @@ from datetime import datetime
 import sys
 
 #botVersion
-botVersion = "V1.3.5"
+botVersion = "V1.3.6"
 #errordump
 file = None
 
@@ -41,7 +41,7 @@ timer = 0
 #error log
 errorloglist = []
 #votes
-votelist = {}
+votelist = []
 
 #searchlist
 searchlist = []
@@ -49,6 +49,7 @@ searchlist = []
 #Player stuff
 volumechange = 100.0
 playqueue = []
+
 
 
 # Initialise function
@@ -271,15 +272,17 @@ async def join(ctx):
             caller = ctx.message.author
             voiceclient = await client.join_voice_channel(ctx.message.author.voice.voice_channel)
             vplayer = voiceclient.create_stream_player(None)
+            vplayer.stop()
         elif voiceclient.is_connected() == False:
             caller = ctx.message.author
             voiceclient = await client.join_voice_channel(ctx.message.author.voice.voice_channel)
+            vplayer.stop()
         elif str(discord.utils.get(ctx.message.author.roles, name ='Admin')) == "Admin" and voiceclient.is_connected() == True:
             caller = ctx.message.author
             await voiceclient.move_to(ctx.message.author.voice.voice_channel)
+            vplayer.stop()
         else:
             await client.send_message(client.get_channel(gvars.bot), "The bot is already in a channel!")
-        vplayer.stop()
     except Exception as e:
         await write_errors("Exception occured in join: {0} at {1}".format(e, str(datetime.now())))
     return
@@ -365,6 +368,7 @@ async def skip(ctx):
         await write_errors("Exception occured in skip: {0} at {1}".format(e, str(datetime.now())))
     return
 
+
 @client.command(pass_context=True)
 async def stop(ctx):
     global vplayer
@@ -389,9 +393,9 @@ async def stop(ctx):
                 votelist.append(authorindex)
                 if len(votelist) >= round(len(voiceclient.channel.voice_members)/2):
                     # Check the existing list to see if everyone is in the channel who is in the list, if they are not remove them.
-                    for name in votelist.copy():
-                        if discord.utils.get(voiceclient.channel.voice_members, name = votelist[name]) == None:
-                            del votelist[name]
+                    for x in votelist.copy():
+                        if x not in voiceclient.channel.voice_members:
+                            del votelist[x]
                     if len(votelist) >= round(len(voiceclient.channel.voice_members)/2) or len(voiceclient.channel.voice_members) < 3:
                         await client.send_message(client.get_channel(gvars.bot), "The {0} vote has passed!".format(message))
                         vplayer.stop()
